@@ -52,6 +52,8 @@ export function FileProvider({ children }: { children: ReactNode }) {
                 lastModified: new Date(file.lastModified),
                 size: file.size
             };
+            console.log(newDocument);
+            
             setDocument(newDocument);
         } catch (error) {
             console.error('Error uploading document:', error);

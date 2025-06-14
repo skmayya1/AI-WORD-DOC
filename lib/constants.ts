@@ -70,7 +70,7 @@ export const lineHeightOptions = [
 { label: '1.15', value: '1.15' },
 { label: '1.5', value: '1.5' }, // Default (index 2)
 { label: '2.0', value: '2.0' },
-{ label: 'Custom', value: 'custom' }
+// { label: 'Custom', value: 'custom' }
 ];
 
 // Text formatting actions with icons for iteration

@@ -34,9 +34,12 @@ import { $createCodeNode } from '@lexical/code';
 import { $patchStyleText, $setBlocksType } from '@lexical/selection';
 import { useEditorContext } from '@/contexts/EditorContext';
 import { formatParagraph } from '@/lib/utils';
+import { MdModeEdit } from "react-icons/md";
+import { useFile } from '@/contexts/FileContexts';
 
 const ToolBar = () => {
     const [editor] = useLexicalComposerContext();
+    const {document} = useFile()
     const {
         selectionMap,
         currAlignment,
@@ -169,9 +172,15 @@ const ToolBar = () => {
         }
     };
 
+    const FILE_NAME = "untitled"
+
     return (
         <div className='min-h-16 w-full p-2 flex items-center justify-center'>
-            <div className="min-h-full w-full bg-zinc-100 rounded-md border border-zinc-200 px-20 py-2 flex items-center flex-wrap">
+            <div className="min-h-full w-full bg-zinc-100 rounded-md border border-zinc-200 px-5 py-2 flex items-center justify-start flex-wrap gap-2">
+
+                <div className="text-sm font-thin border-r px-2  border-zinc-200 h-full flex items-center justify-center gap-3 w-180px]">
+                    <span className=' w-full flex-nowrap overflow-hidden line-clamp-1'>{document?.name !== "" ? document?.name.split('.docx') : FILE_NAME }</span>
+                </div>
 
                 {/* Undo/Redo Section */}
                 <div className="flex h-full w-fit items-center justify-center gap-4 border-r border-zinc-200 px-3">
@@ -296,3 +305,13 @@ const ToolBar = () => {
 };
 
 export default ToolBar;
+
+
+
+
+
+
+
+
+
+
