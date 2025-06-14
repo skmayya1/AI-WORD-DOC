@@ -11,6 +11,7 @@ import {
 import { mergeRegister } from "@lexical/utils";
 import { fontFamilyOptions, fontSizeOptions, lineHeightOptions, RichTextAction, stylesOptions } from '@/lib/constants';
 
+
 interface EditorContextType {
     // Selection state
     selectionMap: { [id: string]: boolean };
@@ -19,6 +20,7 @@ interface EditorContextType {
     canRedo: boolean;
     
     // Current settings
+    currentListType:'ordered' | 'unordered' | null;
     currentStyle: string;
     currentFontFamily: string;
     currentFontSize: string;
@@ -27,11 +29,11 @@ interface EditorContextType {
     // Setters
     setCurrentStyle: (style: string) => void;
     setCurrentFontFamily: (family: string) => void;
+    setCurrentListType: (type :'ordered' | 'unordered' | null) => void;
     setCurrentFontSize: (size: string) => void;
     setCurrentLineHeight: (height: string) => void;
     setCurrAlignment: (alignment: ElementFormatType) => void;
     
-    // Update toolbar function
     updateToolbar: () => void;
 }
 
@@ -47,6 +49,7 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const [currentFontFamily, setCurrentFontFamily] = useState(fontFamilyOptions[0].value);
     const [currentFontSize, setCurrentFontSize] = useState(fontSizeOptions[2].value);
     const [currentLineHeight, setCurrentLineHeight] = useState(lineHeightOptions[2].value);
+    const [currentListType, setCurrentListType] = useState<'ordered' | 'unordered' | null>(null)
 
     const updateToolbar = () => {
         const selection = $getSelection();        
@@ -109,6 +112,8 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         currentFontFamily,
         currentFontSize,
         currentLineHeight,
+        currentListType,
+        setCurrentListType,
         setCurrentStyle,
         setCurrentFontFamily,
         setCurrentFontSize,

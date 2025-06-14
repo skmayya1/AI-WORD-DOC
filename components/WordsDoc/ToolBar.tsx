@@ -1,10 +1,10 @@
 import React from 'react';
 import Container from './Container';
 import SelectInput from '../DropDown';
-import { 
-    fontFamilyOptions, 
-    fontSizeOptions, 
-    lineHeightOptions, 
+import {
+    fontFamilyOptions,
+    fontSizeOptions,
+    lineHeightOptions,
     stylesOptions,
     textFormatActions,
     alignmentOptions,
@@ -13,26 +13,27 @@ import {
     RichTextAction
 } from '@/lib/constants';
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { 
-    $getSelection, 
-    $isRangeSelection, 
+import {
+    $getSelection,
+    $isRangeSelection,
     $createParagraphNode,
-    ElementFormatType, 
-    FORMAT_ELEMENT_COMMAND, 
-    FORMAT_TEXT_COMMAND, 
+    ElementFormatType,
+    FORMAT_ELEMENT_COMMAND,
+    FORMAT_TEXT_COMMAND,
     TextFormatType,
     UNDO_COMMAND,
     REDO_COMMAND,
 
 } from 'lexical';
 import { INSERT_ORDERED_LIST_COMMAND, INSERT_UNORDERED_LIST_COMMAND } from '@lexical/list';
-import { 
+import {
     $createHeadingNode,
     $createQuoteNode,
 } from '@lexical/rich-text';
 import { $createCodeNode } from '@lexical/code';
 import { $patchStyleText, $setBlocksType } from '@lexical/selection';
 import { useEditorContext } from '@/contexts/EditorContext';
+import { formatParagraph } from '@/lib/utils';
 
 const ToolBar = () => {
     const [editor] = useLexicalComposerContext();
@@ -45,11 +46,13 @@ const ToolBar = () => {
         currentFontFamily,
         currentFontSize,
         currentLineHeight,
+        currentListType,
         setCurrentStyle,
         setCurrentFontFamily,
         setCurrentFontSize,
         setCurrentLineHeight,
-        setCurrAlignment
+        setCurrAlignment,
+        setCurrentListType
     } = useEditorContext();
 
     const handleUpdate = (value: TextFormatType) => {
@@ -60,7 +63,7 @@ const ToolBar = () => {
         setCurrAlignment(value);
         editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, value);
     };
-   
+
     const handleStyleChange = (style: string) => {
         editor.update(() => {
             const selection = $getSelection();
@@ -102,28 +105,29 @@ const ToolBar = () => {
 
     const handleFontSizeChange = (fontSize: string) => {
         setCurrentFontSize(fontSize);
-        editor.update(()=>{
+        editor.update(() => {
             if (editor.isEditable()) {
                 const selection = $getSelection();
                 if (selection !== null) {
-                  $patchStyleText(selection, {
-                    'font-size': fontSize,
-                  });
+                    $patchStyleText(selection, {
+                        'font-size': fontSize,
+                    });
                 }
-              }
+            }
         })
     };
 
     const handleLineHeightChange = (lineHeight: string) => {
-        editor.update(()=>{
+        setCurrentLineHeight(lineHeight)
+        editor.update(() => {
             if (editor.isEditable()) {
                 const selection = $getSelection();
                 if (selection !== null) {
-                  $patchStyleText(selection, {
-                    'line-height': lineHeight,
-                  });
+                    $patchStyleText(selection, {
+                        'line-height': lineHeight,
+                    });
                 }
-              }
+            }
         })
     };
 
@@ -137,23 +141,35 @@ const ToolBar = () => {
 
     const handleListCommand = (command: string) => {
         if (command === 'INSERT_UNORDERED_LIST_COMMAND') {
-            editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined);
+            if (currentListType === 'unordered') {
+                setCurrentListType(null);
+                formatParagraph(editor)
+            } else {
+                setCurrentListType('unordered');
+                editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined);
+            }
         } else if (command === 'INSERT_ORDERED_LIST_COMMAND') {
-            editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
+            if (currentListType === 'ordered') {
+                setCurrentListType(null);
+                formatParagraph(editor)
+            } else {
+                setCurrentListType('ordered');
+                editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
+            }
         }
     };
 
     return (
         <div className='min-h-16 w-full p-2 flex items-center justify-center'>
             <div className="min-h-full w-full bg-zinc-100 rounded-md border border-zinc-200 px-20 py-2 flex items-center flex-wrap">
-                
+
                 {/* Undo/Redo Section */}
                 <div className="flex h-full w-fit items-center justify-center gap-4 border-r border-zinc-200 px-3">
                     {undoRedoActions.map((item) => {
                         const IconComponent = item.icon;
                         const isDisabled = item.action === 'undo' ? !canUndo : !canRedo;
                         return (
-                            <button 
+                            <button
                                 key={item.action}
                                 className={`font-light cursor-pointer ${isDisabled ? 'opacity-50' : ''}`}
                                 onClick={() => handleUndoRedo(item.action)}
@@ -188,17 +204,17 @@ const ToolBar = () => {
                             value={currentFontSize}
                         />
                     </div>
-                    
+
                     {/* Text Formatting Buttons */}
                     <div className="flex items-center gap-1.5 px-2">
                         {textFormatActions.map((formatAction) => {
                             const IconComponent = formatAction.icon;
                             const actionKey = RichTextAction[formatAction.key as keyof typeof RichTextAction];
-                            
+
                             return (
-                                <Container 
+                                <Container
                                     key={formatAction.action}
-                                    Checked={selectionMap[actionKey]} 
+                                    Checked={selectionMap[actionKey]}
                                     handleClick={() => handleUpdate(formatAction.action as TextFormatType)}
                                 >
                                     <button title={formatAction.label}>
@@ -207,7 +223,7 @@ const ToolBar = () => {
                                 </Container>
                             );
                         })}
-                        
+
                         {/* Text Color Control */}
                         <div className="flex flex-col items-center justify-center cursor-pointer leading-14">
                             <p className='font-semibold text-sm'>A</p>
@@ -220,11 +236,11 @@ const ToolBar = () => {
                 <div className="flex items-center h-full justify-center gap-2 px-5 border-r border-zinc-200">
                     {alignmentOptions.map((alignOption) => {
                         const IconComponent = alignOption.icon;
-                        
+
                         return (
-                            <Container 
+                            <Container
                                 key={alignOption.alignment}
-                                handleClick={() => handleAlignmentUpdate(alignOption.alignment as ElementFormatType)} 
+                                handleClick={() => handleAlignmentUpdate(alignOption.alignment as ElementFormatType)}
                                 Checked={currAlignment === alignOption.alignment}
                             >
                                 <button title={alignOption.label}>
@@ -241,9 +257,9 @@ const ToolBar = () => {
                     <div className="flex items-center gap-1.5">
                         {listOptions.map((listOption) => {
                             const IconComponent = listOption.icon;
-                            
                             return (
-                                <Container 
+                                <Container
+                                    Checked={currentListType == listOption.type}
                                     key={listOption.type}
                                     handleClick={() => handleListCommand(listOption.command)}
                                 >
