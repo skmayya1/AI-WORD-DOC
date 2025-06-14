@@ -22,7 +22,8 @@ import {
     FORMAT_TEXT_COMMAND, 
     TextFormatType,
     UNDO_COMMAND,
-    REDO_COMMAND
+    REDO_COMMAND,
+
 } from 'lexical';
 import { INSERT_ORDERED_LIST_COMMAND, INSERT_UNORDERED_LIST_COMMAND } from '@lexical/list';
 import { 
@@ -30,7 +31,7 @@ import {
     $createQuoteNode,
 } from '@lexical/rich-text';
 import { $createCodeNode } from '@lexical/code';
-import { $setBlocksType } from '@lexical/selection';
+import { $patchStyleText, $setBlocksType } from '@lexical/selection';
 import { useEditorContext } from '@/contexts/EditorContext';
 
 const ToolBar = () => {
@@ -101,10 +102,29 @@ const ToolBar = () => {
 
     const handleFontSizeChange = (fontSize: string) => {
         setCurrentFontSize(fontSize);
+        editor.update(()=>{
+            if (editor.isEditable()) {
+                const selection = $getSelection();
+                if (selection !== null) {
+                  $patchStyleText(selection, {
+                    'font-size': fontSize,
+                  });
+                }
+              }
+        })
     };
 
     const handleLineHeightChange = (lineHeight: string) => {
-        setCurrentLineHeight(lineHeight);
+        editor.update(()=>{
+            if (editor.isEditable()) {
+                const selection = $getSelection();
+                if (selection !== null) {
+                  $patchStyleText(selection, {
+                    'line-height': lineHeight,
+                  });
+                }
+              }
+        })
     };
 
     const handleUndoRedo = (action: string) => {

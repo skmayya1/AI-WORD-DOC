@@ -140,7 +140,6 @@ const WordsViewer = () => {
         ],
     };
 
-
     return (
         <div className="bg-[#fcfcfc] h-full w-[78.5%] rounded-lg border  relative overflow-hidden" >
             <LexicalComposer initialConfig={initialConfig}>
