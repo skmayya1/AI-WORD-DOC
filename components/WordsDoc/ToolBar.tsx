@@ -97,17 +97,14 @@ const ToolBar = () => {
 
     const handleFontFamilyChange = (fontFamily: string) => {
         setCurrentFontFamily(fontFamily);
-        // Add your font family application logic here
     };
 
     const handleFontSizeChange = (fontSize: string) => {
         setCurrentFontSize(fontSize);
-        // Add your font size application logic here
     };
 
     const handleLineHeightChange = (lineHeight: string) => {
         setCurrentLineHeight(lineHeight);
-        // Add your line height application logic here
     };
 
     const handleUndoRedo = (action: string) => {
@@ -135,7 +132,6 @@ const ToolBar = () => {
                     {undoRedoActions.map((item) => {
                         const IconComponent = item.icon;
                         const isDisabled = item.action === 'undo' ? !canUndo : !canRedo;
-                        
                         return (
                             <button 
                                 key={item.action}

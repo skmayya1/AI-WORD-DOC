@@ -49,9 +49,9 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const [currentLineHeight, setCurrentLineHeight] = useState(lineHeightOptions[2].value);
 
     const updateToolbar = () => {
-        const selection = $getSelection();
+        const selection = $getSelection();        
         if ($isRangeSelection(selection)) {
-            const newSelectionMap = {
+                const newSelectionMap = {
                 [RichTextAction.Bold]: selection.hasFormat("bold"),
                 [RichTextAction.Italics]: selection.hasFormat("italic"),
                 [RichTextAction.Underline]: selection.hasFormat("underline"),
@@ -64,6 +64,8 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     };
 
     useEffect(() => {
+        console.log(editor);
+
         return mergeRegister(
             editor.registerUpdateListener(({ editorState }) => {
                 editorState.read(() => {
@@ -95,6 +97,7 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                 1
             )
         );
+        
     }, [editor]);
 
     const value = {

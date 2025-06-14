@@ -6,10 +6,11 @@ import LexicalEditor from './Editor';
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
 import { EditorThemeClasses } from 'lexical';
 import { ListNode, ListItemNode } from '@lexical/list';
-import { HeadingNode, QuoteNode } from '@lexical/rich-text'; 
+import { HeadingNode, QuoteNode } from '@lexical/rich-text';
 import { CodeNode } from '@lexical/code';
 import ToolBar from './ToolBar';
 import { EditorProvider } from '@/contexts/EditorContext';
+import theme from '@/themes';
 
 
 const WordsViewer = () => {
@@ -123,42 +124,6 @@ const WordsViewer = () => {
         )
     }
 
-    const theme: EditorThemeClasses = {
-        text: {
-            bold: "font-bold",
-            underline: "underline",
-            strikethrough: "line-through",
-            underlineStrikethrough: "underline line-through",
-            italic: "italic",
-            code: "text-black px-1 py-0.5 bg-gray-100 border border-gray-300 font-mono text-sm rounded",
-            highlight: "bg-yellow-200 px-1 rounded",
-        },
-        list: {
-            ul: "list-disc pl-6 my-2",
-            ol: "list-decimal pl-6 my-2",
-            listitem: "my-1",
-        },
-        heading: {
-            h1: "text-4xl font-bold mb-4 mt-6 text-gray-900",
-            h2: "text-3xl font-bold mb-3 mt-5 text-gray-900",
-            h3: "text-2xl font-bold mb-2 mt-4 text-gray-900",
-            h4: "text-xl font-bold mb-2 mt-3 text-gray-900",
-            h5: "text-lg font-bold mb-1 mt-2 text-gray-900",
-            h6: "text-base font-bold mb-1 mt-2 text-gray-900",
-        },
-        quote: "border-l-4 border-gray-300 pl-4 italic text-gray-700 my-4 bg-gray-50 py-2",
-        code: "bg-gray-100 border border-gray-300 font-mono text-sm p-4 rounded-lg my-2 overflow-x-auto",
-        paragraph: "mb-2 leading-relaxed",
-        root: "min-h-full",
-        // Element formatting
-        elementAlign: {
-            left: "text-left",
-            center: "text-center",
-            right: "text-right",
-            justify: "text-justify",
-        },
-    };
-
     const initialConfig = {
         namespace: 'ReportViewer',
         theme,
@@ -180,10 +145,10 @@ const WordsViewer = () => {
         <div className="bg-[#fcfcfc] h-full w-[78.5%] rounded-lg border  relative overflow-hidden" >
             <LexicalComposer initialConfig={initialConfig}>
                 <EditorProvider>
-                <ToolBar/>
-                <div className="overflow-auto scrollbar-thin h-full max-h-[93%] w-full py-4">
-                    <LexicalEditor />
-                </div>
+                    <ToolBar />
+                    <div className="overflow-auto scrollbar-thin h-full max-h-[93%] w-full py-4">
+                        <LexicalEditor />
+                    </div>
                 </EditorProvider>
             </LexicalComposer>
         </div>
