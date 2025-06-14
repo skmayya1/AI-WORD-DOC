@@ -15,12 +15,9 @@ import React from 'react';
 
 interface RichTextEditorProps {}
 
-
 const ReportViewer: React.FC<RichTextEditorProps> = () => {
-  const {} = useFile()
   return (
     <div className="w-[794px] h-[1123px] bg-white mx-auto my-14">
-
         <RichTextPlugin
           contentEditable={
             <ContentEditable className="select-text outline-0 h-full w-full overflow-hidden editor z-0 border" />
@@ -29,7 +26,7 @@ const ReportViewer: React.FC<RichTextEditorProps> = () => {
           ErrorBoundary={LexicalErrorBoundary}
         />
         <HistoryPlugin />
-        <ListPlugin />
+        <ListPlugin hasStrictIndent/>
         <AutoFocusPlugin/>
     </div>
   );
