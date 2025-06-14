@@ -671,3 +671,32 @@
     color: #aaa;
     cursor: not-allowed;
   }
+
+  /* Custom list styles */
+  .PlaygroundEditorTheme__ul {
+    list-style-type: disc !important;
+    padding-left: 1.5em !important;
+    margin: 0 !important;
+  }
+
+  .PlaygroundEditorTheme__ol1 {
+    list-style-type: decimal !important;
+    padding-left: 1.5em !important;
+    margin: 0 !important;
+  }
+
+  .PlaygroundEditorTheme__listItem {
+    margin: 0 !important;
+    padding: 0 !important;
+    position: relative !important;
+  }
+
+  .PlaygroundEditorTheme__listItem::marker {
+    color: #000 !important;
+    font-size: 1em !important;
+    font-family: inherit !important;
+  }
+
+  .PlaygroundEditorTheme__nestedListItem {
+    list-style-type: inherit !important;
+  }

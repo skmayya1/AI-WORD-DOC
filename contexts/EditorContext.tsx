@@ -6,10 +6,15 @@ import {
     CAN_REDO_COMMAND, 
     CAN_UNDO_COMMAND, 
     SELECTION_CHANGE_COMMAND, 
-    ElementFormatType 
+    ElementFormatType,
+    KEY_BACKSPACE_COMMAND,
+    KEY_ESCAPE_COMMAND,
+    $getRoot,
+    $isElementNode
 } from 'lexical';
 import { mergeRegister } from "@lexical/utils";
 import { fontFamilyOptions, fontSizeOptions, lineHeightOptions, RichTextAction, stylesOptions } from '@/lib/constants';
+import { $isListNode } from '@lexical/list';
 
 
 interface EditorContextType {
@@ -67,12 +72,20 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     };
 
     useEffect(() => {
-        console.log(editor);
-
         return mergeRegister(
             editor.registerUpdateListener(({ editorState }) => {
                 editorState.read(() => {
                     updateToolbar();
+                    const root = $getRoot();
+                    let hasList = false;
+                    root.getChildren().forEach((node) => {
+                        if ($isElementNode(node) && $isListNode(node)) {
+                            hasList = true;
+                        }
+                    });
+                    if (!hasList && currentListType !== null) {
+                        setCurrentListType(null);
+                    }
                 });
             }),
             editor.registerCommand(
@@ -98,10 +111,34 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                     return false;
                 },
                 1
+            ),
+            editor.registerCommand(
+                KEY_BACKSPACE_COMMAND,
+                () => {
+                    const selection = $getSelection();
+                    if ($isRangeSelection(selection)) {
+                        const node = selection.anchor.getNode();
+                        if ($isListNode(node)) {
+                            // If we're at the start of a list item and pressing backspace
+                            if (selection.anchor.offset === 0) {
+                                setCurrentListType(null);
+                            }
+                        }
+                    }
+                    return false;
+                },
+                1
+            ),
+            editor.registerCommand(
+                KEY_ESCAPE_COMMAND,
+                () => {
+                    setCurrentListType(null);
+                    return false;
+                },
+                1
             )
         );
-        
-    }, [editor]);
+    }, [editor, currentListType]);
 
     const value = {
         selectionMap,
