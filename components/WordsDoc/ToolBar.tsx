@@ -101,6 +101,16 @@ const ToolBar = () => {
 
     const handleFontFamilyChange = (fontFamily: string) => {
         setCurrentFontFamily(fontFamily);
+        editor.update(() => {
+            if (editor.isEditable()) {
+                const selection = $getSelection();
+                if (selection !== null) {
+                    $patchStyleText(selection, {
+                        'font-family': fontFamily,
+                    });
+                }
+            }
+        })
     };
 
     const handleFontSizeChange = (fontSize: string) => {

@@ -43,12 +43,12 @@ export const stylesOptions = [
 
 // Font family options
 export const fontFamilyOptions = [
-{ label: 'Inter', value: 'inter' },
-{ label: 'Arial', value: 'arial' },
-{ label: 'Georgia', value: 'georgia' },
-{ label: 'Times New Roman', value: 'times-new-roman' },
-{ label: 'Roboto', value: 'roboto' },
-{ label: 'Courier New', value: 'courier-new' }
+  { label: 'Inter', value: 'Inter, sans-serif' },
+  { label: 'Arial', value: 'Arial, sans-serif' },
+  { label: 'Georgia', value: 'Georgia, serif' },
+  { label: 'Times New Roman', value: '"Times New Roman", serif' },
+  { label: 'Roboto', value: 'Roboto, sans-serif' },
+  { label: 'Courier New', value: '"Courier New", monospace' },
 ];
 
 // Font size options
