@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Container from './Container';
 import SelectInput from '../DropDown';
 import {
@@ -34,6 +34,7 @@ import { $createCodeNode } from '@lexical/code';
 import { $patchStyleText, $setBlocksType } from '@lexical/selection';
 import { useEditorContext } from '@/contexts/EditorContext';
 import { formatParagraph, handleClick } from '@/lib/utils';
+import { SketchPicker, TwitterPicker } from 'react-color';
 
 
 const ToolBar = () => {
@@ -48,13 +49,39 @@ const ToolBar = () => {
         currentFontSize,
         currentLineHeight,
         currentListType,
+        color,
         setCurrentStyle,
         setCurrentFontFamily,
         setCurrentFontSize,
         setCurrentLineHeight,
         setCurrAlignment,
-        setCurrentListType
+        setCurrentListType,
+        changeColor
     } = useEditorContext();
+
+    const [isModalOpen, setisModalOpen] = useState(false)
+    const colorPickerRef = useRef<HTMLDivElement>(null);
+
+    console.log(color);
+    
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (colorPickerRef.current && !colorPickerRef.current.contains(event.target as Node)) {
+                setisModalOpen(false);
+            }
+        };
+
+        if (isModalOpen) {
+            document.addEventListener("mousedown", handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isModalOpen]);
+
+
 
     const handleUpdate = (value: TextFormatType) => {
         editor.dispatchCommand(FORMAT_TEXT_COMMAND, value);
@@ -242,9 +269,22 @@ const ToolBar = () => {
                         })}
 
                         {/* Text Color Control */}
-                        <div className="flex flex-col items-center justify-center cursor-pointer leading-14">
+                        <div
+                            onClick={() => setisModalOpen(true)}
+                            className="flex flex-col items-center justify-center cursor-pointer leading-14 relative"
+                        >
                             <p className='font-semibold text-sm'>A</p>
-                            <span className='bg-[#c1121f] h-1 w-4 rounded-md' />
+                            <span style={{backgroundColor:color}} className='h-1 w-4 rounded-md' />
+
+                            {isModalOpen && (
+                                <div className="absolute top-10 -left-3" ref={colorPickerRef}>
+                                    <TwitterPicker
+                                    
+                                        color={color}
+                                        onChangeComplete={changeColor}
+                                    />
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -298,7 +338,7 @@ const ToolBar = () => {
                     </div>
                 </div>
                 <div className="flex items-center h-full justify-center gap-2">
-                    <button onClick={()=>{
+                    <button className='px-4 py-1.5  bg-lblue text-black rounded-lg font-thin text-sm' onClick={() => {
                         handleClick(editor)
                     }}>Export</button>
                 </div>

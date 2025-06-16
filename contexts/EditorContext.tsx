@@ -12,10 +12,10 @@ import {
     $getRoot,
     $isElementNode
 } from 'lexical';
-import { $generateNodesFromDOM } from "@lexical/html";
 import { mergeRegister } from "@lexical/utils";
 import { fontFamilyOptions, fontSizeOptions, lineHeightOptions, RichTextAction, stylesOptions } from '@/lib/constants';
 import { $isListNode } from '@lexical/list';
+import { ColorResult } from 'react-color';
 
 
 interface EditorContextType {
@@ -24,6 +24,7 @@ interface EditorContextType {
     currAlignment: ElementFormatType;
     canUndo: boolean;
     canRedo: boolean;
+    color:string;
     
     // Current settings
     currentListType:'ordered' | 'unordered' | null;
@@ -41,6 +42,7 @@ interface EditorContextType {
     setCurrAlignment: (alignment: ElementFormatType) => void;
     
     updateToolbar: () => void;
+    changeColor: (color:ColorResult) => void;
 }
 
 const EditorContext = createContext<EditorContextType | undefined>(undefined);
@@ -56,7 +58,11 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const [currentFontSize, setCurrentFontSize] = useState(fontSizeOptions[2].value);
     const [currentLineHeight, setCurrentLineHeight] = useState(lineHeightOptions[2].value);
     const [currentListType, setCurrentListType] = useState<'ordered' | 'unordered' | null>(null)
+    const [color, setcolor] = useState('#111111');
 
+    const changeColor = (color:ColorResult) =>{
+        setcolor(color.hex)
+    }
 
     const updateToolbar = () => {
         const selection = $getSelection();        
@@ -152,13 +158,15 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         currentFontSize,
         currentLineHeight,
         currentListType,
+        color,
         setCurrentListType,
         setCurrentStyle,
         setCurrentFontFamily,
         setCurrentFontSize,
         setCurrentLineHeight,
         setCurrAlignment,
-        updateToolbar
+        updateToolbar,
+        changeColor
     };
 
     return (
