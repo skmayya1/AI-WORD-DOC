@@ -16,7 +16,6 @@ import { $generateNodesFromDOM } from "@lexical/html";
 import { mergeRegister } from "@lexical/utils";
 import { fontFamilyOptions, fontSizeOptions, lineHeightOptions, RichTextAction, stylesOptions } from '@/lib/constants';
 import { $isListNode } from '@lexical/list';
-import { useFile } from './FileContexts';
 
 
 interface EditorContextType {
@@ -48,7 +47,6 @@ const EditorContext = createContext<EditorContextType | undefined>(undefined);
 
 export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [editor] = useLexicalComposerContext();
-    const {document} = useFile()
     const [selectionMap, setSelectionMap] = useState<{ [id: string]: boolean }>({});
     const [currAlignment, setCurrAlignment] = useState<ElementFormatType>("left");
     const [canUndo, setCanUndo] = useState(false);
@@ -74,18 +72,6 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             setSelectionMap(newSelectionMap);
         }
     };
-
-    // if(document){
-    //     editor.update(() => {
-    //         const parser = new DOMParser();
-    //         const dom = parser.parseFromString(document.content as string, "text/html");
-    //         const nodes = $generateNodesFromDOM(editor, dom);
-    //         const root = $getRoot();
-    //         root.clear();
-    //         root.append(...nodes);
-    //       });
-    
-    // }
 
     useEffect(() => {
         return mergeRegister(

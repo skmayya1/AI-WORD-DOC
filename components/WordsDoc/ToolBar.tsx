@@ -33,13 +33,11 @@ import {
 import { $createCodeNode } from '@lexical/code';
 import { $patchStyleText, $setBlocksType } from '@lexical/selection';
 import { useEditorContext } from '@/contexts/EditorContext';
-import { formatParagraph } from '@/lib/utils';
-import { MdModeEdit } from "react-icons/md";
-import { useFile } from '@/contexts/FileContexts';
+import { formatParagraph, handleClick } from '@/lib/utils';
+
 
 const ToolBar = () => {
     const [editor] = useLexicalComposerContext();
-    const {document} = useFile()
     const {
         selectionMap,
         currAlignment,
@@ -179,7 +177,7 @@ const ToolBar = () => {
             <div className="min-h-full w-full bg-zinc-100 rounded-md border border-zinc-200 px-5 py-2 flex items-center justify-start flex-wrap gap-2">
 
                 <div className="text-sm font-thin border-r px-2  border-zinc-200 h-full flex items-center justify-center gap-3 w-180px]">
-                    <span className=' w-full flex-nowrap overflow-hidden line-clamp-1'>{document?.name !== "" ? document?.name.split('.docx') : FILE_NAME }</span>
+                    <span className=' w-full flex-nowrap overflow-hidden line-clamp-1'>{FILE_NAME}</span>
                 </div>
 
                 {/* Undo/Redo Section */}
@@ -298,6 +296,11 @@ const ToolBar = () => {
                             value={currentLineHeight}
                         />
                     </div>
+                </div>
+                <div className="flex items-center h-full justify-center gap-2">
+                    <button onClick={()=>{
+                        handleClick(editor)
+                    }}>Export</button>
                 </div>
             </div>
         </div>

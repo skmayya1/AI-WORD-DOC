@@ -28,6 +28,7 @@ const ReportViewer: React.FC<RichTextEditorProps> = () => {
         <HistoryPlugin />
         <ListPlugin hasStrictIndent/>
         <AutoFocusPlugin/>
+
     </div>
   );
 }
