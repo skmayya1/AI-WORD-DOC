@@ -26,6 +26,15 @@
   background: #afafafa6;
 }
 
+.scrollbar-x-thin::-webkit-scrollbar {
+  display: none;         /* Chrome, Safari, Opera */
+}
+.scrollbar-x-thin{
+  overflow-x: auto;     /* Enables horizontal scrolling */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;  /* IE/Edge */
+}
+
 .editor::selection {
   background-color: #E1E5F2;
 }

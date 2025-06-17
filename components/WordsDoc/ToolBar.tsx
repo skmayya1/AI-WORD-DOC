@@ -34,7 +34,11 @@ import { $createCodeNode } from '@lexical/code';
 import { $patchStyleText, $setBlocksType } from '@lexical/selection';
 import { useEditorContext } from '@/contexts/EditorContext';
 import { formatParagraph, handleClick } from '@/lib/utils';
-import { SketchPicker, TwitterPicker } from 'react-color';
+import { TwitterPicker } from 'react-color';
+import { RxMargin } from "react-icons/rx";
+import { useModal } from '@/contexts/ModelContext';
+import MarginModal from './Margin';
+
 
 
 const ToolBar = () => {
@@ -50,6 +54,7 @@ const ToolBar = () => {
         currentLineHeight,
         currentListType,
         color,
+        margins,
         setCurrentStyle,
         setCurrentFontFamily,
         setCurrentFontSize,
@@ -61,9 +66,10 @@ const ToolBar = () => {
 
     const [isModalOpen, setisModalOpen] = useState(false)
     const colorPickerRef = useRef<HTMLDivElement>(null);
+    const {showModal} = useModal()
 
     console.log(color);
-    
+
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -200,8 +206,17 @@ const ToolBar = () => {
     const FILE_NAME = "untitled"
 
     return (
-        <div className='min-h-16 w-full p-2 flex items-center justify-center'>
-            <div className="min-h-full w-full bg-zinc-100 rounded-md border border-zinc-200 px-5 py-2 flex items-center justify-start flex-wrap gap-2">
+        <div className='min-h-16 w-full p-2 relative'>
+            {isModalOpen && (
+                <div className="absolute top-18 right-117" ref={colorPickerRef}>
+                    <TwitterPicker
+
+                        color={color}
+                        onChangeComplete={changeColor}
+                    />
+                </div>
+            )}
+            <div className="min-h-full w-full bg-zinc-100 rounded-md border border-zinc-200 px-5 py-2 \flex items-center justify-start flex scrollbar-x-thin">
 
                 <div className="text-sm font-thin border-r px-2  border-zinc-200 h-full flex items-center justify-center gap-3 w-180px]">
                     <span className=' w-full flex-nowrap overflow-hidden line-clamp-1'>{FILE_NAME}</span>
@@ -274,17 +289,7 @@ const ToolBar = () => {
                             className="flex flex-col items-center justify-center cursor-pointer leading-14 relative"
                         >
                             <p className='font-semibold text-sm'>A</p>
-                            <span style={{backgroundColor:color}} className='h-1 w-4 rounded-md' />
-
-                            {isModalOpen && (
-                                <div className="absolute top-10 -left-3" ref={colorPickerRef}>
-                                    <TwitterPicker
-                                    
-                                        color={color}
-                                        onChangeComplete={changeColor}
-                                    />
-                                </div>
-                            )}
+                            <span style={{ backgroundColor: color }} className='h-1 w-4 rounded-md' />
                         </div>
                     </div>
                 </div>
@@ -309,7 +314,7 @@ const ToolBar = () => {
                 </div>
 
                 {/* Lists and Line Height Controls */}
-                <div className="flex items-center h-full justify-center gap-2 px-5">
+                <div className="flex items-center h-full justify-center gap-2 px-2 border-r border-zinc-200">
                     {/* List Controls */}
                     <div className="flex items-center gap-1.5">
                         {listOptions.map((listOption) => {
@@ -337,12 +342,18 @@ const ToolBar = () => {
                         />
                     </div>
                 </div>
-                <div className="flex items-center h-full justify-center gap-2">
+
+                <div className="flex items-center h-full justify-center gap-2 px-2">
+                    <button onClick={()=>showModal(<MarginModal />)} className='flex items-center justify-center gap-1 cursor-pointer flex-col'>
+                        <RxMargin size={22} />
+                    </button>
+                </div>
+                <div className="flex items-center h-full justify-center gap-2 px-2">
                     <button className='px-4 py-1.5  bg-lblue text-black rounded-lg font-thin text-sm' onClick={() => {
-                        handleClick(editor)
+                        handleClick(editor,{margins})
                     }}>Export</button>
                 </div>
-            </div>
+            </div> 
         </div>
     );
 };

@@ -32,6 +32,8 @@ interface EditorContextType {
     currentFontFamily: string;
     currentFontSize: string;
     currentLineHeight: string;
+    margins: { top: number; bottom: number; left: number; right: number };
+
     
     // Setters
     setCurrentStyle: (style: string) => void;
@@ -40,6 +42,8 @@ interface EditorContextType {
     setCurrentFontSize: (size: string) => void;
     setCurrentLineHeight: (height: string) => void;
     setCurrAlignment: (alignment: ElementFormatType) => void;
+    setMargins: (margins: { top: number; bottom: number; left: number; right: number } | ((prev: any) => any)) => void;
+
     
     updateToolbar: () => void;
     changeColor: (color:ColorResult) => void;
@@ -59,6 +63,12 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const [currentLineHeight, setCurrentLineHeight] = useState(lineHeightOptions[2].value);
     const [currentListType, setCurrentListType] = useState<'ordered' | 'unordered' | null>(null)
     const [color, setcolor] = useState('#111111');
+    const [margins, setMargins] = useState({
+        top: 1.0,
+        bottom: 1.0, 
+        left: 1.0,
+        right: 1.0
+    });
 
     const changeColor = (color:ColorResult) =>{
         setcolor(color.hex)
@@ -159,12 +169,14 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         currentLineHeight,
         currentListType,
         color,
+        margins,
         setCurrentListType,
         setCurrentStyle,
         setCurrentFontFamily,
         setCurrentFontSize,
         setCurrentLineHeight,
         setCurrAlignment,
+        setMargins,
         updateToolbar,
         changeColor
     };

@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { $createParagraphNode, $getSelection, LexicalEditor } from "lexical";
-import {  $setBlocksType } from '@lexical/selection';
+import { $setBlocksType } from '@lexical/selection';
 import prettier from "prettier/standalone";
 import parserHtml from "prettier/parser-html";
 
@@ -19,18 +19,18 @@ export const formatParagraph = (editor: LexicalEditor) => {
 
 import { $generateHtmlFromNodes } from '@lexical/html';
 
-export const handleClick = async (editor: LexicalEditor) => {
+export const handleClick = async (editor: LexicalEditor, config: ConfigType) => {
   await editor.update(async () => {
     const editorState = editor.getEditorState();
     const jsonString = JSON.stringify(editorState);
     console.log('jsonString', jsonString);
     const htmlString = $generateHtmlFromNodes(editor, null);
-    const compatibleHtml = await tailwindToInlineCSS(htmlString)
+    const compatibleHtml = await tailwindToInlineCSS(htmlString, config)
 
     console.log('tw to inline', compatibleHtml);
     const blob = new Blob([compatibleHtml], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
-  
+
     const a = document.createElement('a');
     a.href = url;
     a.download = 'test.html';
@@ -39,14 +39,23 @@ export const handleClick = async (editor: LexicalEditor) => {
   });
 };
 
-export async function tailwindToInlineCSS(content: string) :Promise<string>{
+export interface ConfigType {
+  margins: {
+    left: number
+    right: number
+    top: number
+    bottom: number
+  }
+}
+
+export async function tailwindToInlineCSS(content: string, config: ConfigType): Promise<string> {
   const convertedContent = content.replace(/class=["']([^"']+)["']/g, (_, classNames) => {
     const classes = classNames.split(/\s+/);
     let alignAttribute = '';
     let otherStyles = '';
-    
-    classes.forEach((className : string) => {
-      switch(className) {
+
+    classes.forEach((className: string) => {
+      switch (className) {
         case 'text-center':
           alignAttribute = 'align="center"';
           break;
@@ -66,7 +75,7 @@ export async function tailwindToInlineCSS(content: string) :Promise<string>{
           break;
       }
     });
-    
+
     let result = '';
     if (alignAttribute) {
       result += alignAttribute;
@@ -74,21 +83,28 @@ export async function tailwindToInlineCSS(content: string) :Promise<string>{
     if (otherStyles) {
       result += ` style="${otherStyles.trim()}"`;
     }
-    
+
     return result;
   });
 
-  const hasHtmlStructure = /<html[^>]*>[\s\S]*<\/html>/i.test(convertedContent) || 
-                          /<body[^>]*>[\s\S]*<\/body>/i.test(convertedContent);
+  const hasHtmlStructure = /<html[^>]*>[\s\S]*<\/html>/i.test(convertedContent) ||
+    /<body[^>]*>[\s\S]*<\/body>/i.test(convertedContent);
 
   if (hasHtmlStructure) {
     return convertedContent;
   }
 
-  
-const finalHtml = hasHtmlStructure
-? convertedContent
-: `<!DOCTYPE html>
+
+  const { top, right, bottom, left } = config.margins;
+
+  const marginTop = (top * 2.54).toFixed(2) + 'cm';
+  const marginRight = (right * 2.54).toFixed(2) + 'cm';
+  const marginBottom = (bottom * 2.54).toFixed(2) + 'cm';
+  const marginLeft = (left * 2.54).toFixed(2) + 'cm';
+
+  const finalHtml = hasHtmlStructure
+    ? convertedContent
+    : `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -96,6 +112,13 @@ const finalHtml = hasHtmlStructure
     <title>Document</title>
     <style>
         /* Basic document styles */
+  @page {
+      size: 21cm 29.7cm;
+      margin-top: ${marginTop};
+      margin-right: ${marginRight};
+      margin-bottom: ${marginBottom};
+      margin-left: ${marginLeft};
+    }
         body { 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             line-height: 1.6;
@@ -116,17 +139,19 @@ const finalHtml = hasHtmlStructure
     </style>
 </head>
 <body>
+<div class="page">
 ${convertedContent}
+</div>
 </body>
 </html>`;
 
 
-const formatted = await prettier.format(finalHtml, {
-  parser: "html",
-  plugins: [parserHtml],
-});
+  const formatted = await prettier.format(finalHtml, {
+    parser: "html",
+    plugins: [parserHtml],
+  });
 
-return formatted
+  return formatted
 }
 
 function convertBgClass(className: string): string {
