@@ -7,10 +7,10 @@ import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin';
 import { ListPlugin } from '@lexical/react/LexicalListPlugin';
+import PageBreakPlugin from '@/plugins/PageBreakPlugin';
 
-import React from 'react';
+import React, { JSX } from 'react';
 import { useEditorContext } from '@/contexts/EditorContext';
-
 
 interface RichTextEditorProps {}
 
@@ -33,9 +33,10 @@ const ReportViewer: React.FC<RichTextEditorProps> = () => {
         <HistoryPlugin />
         <ListPlugin hasStrictIndent/>
         <AutoFocusPlugin/>
-
+        <PageBreakPlugin />
     </div>
   );
 }
 
 export default ReportViewer;
+
