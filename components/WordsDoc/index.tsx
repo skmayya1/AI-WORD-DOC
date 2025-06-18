@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { use, useState } from 'react'
 import LexicalEditor from './Editor';
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
 import { ListNode, ListItemNode } from '@lexical/list';
@@ -12,9 +12,20 @@ import { PageBreakNode } from '@/nodes/PageBreak';
 
 
 const WordsViewer = () => {
+    const [margins, setMargins] = useState({
+        top: 1.0,
+        bottom: 1.0, 
+        left: 1.0,
+        right: 1.0
+    });
+
+    const extendedTheme  = {
+        ...theme,
+        margins
+    }
     const initialConfig = {
         namespace: 'ReportViewer',
-        theme,
+        extendedTheme,
         onError(error: Error) {
             throw error;
         },
@@ -34,7 +45,7 @@ const WordsViewer = () => {
             <LexicalComposer initialConfig={initialConfig}>
                 <EditorProvider>
                     <ModalProvider>
-                        <ToolBar />
+                        <ToolBar setMargins={setMargins}  />
                         <div className="overflow-auto scrollbar-thin h-full max-h-[93%] w-full py-4">
                             <LexicalEditor />
                             <div className="">

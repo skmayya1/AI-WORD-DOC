@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { SetStateAction, useEffect, useRef, useState } from 'react';
 import Container from './Container';
 import SelectInput from '../DropDown';
 import {
@@ -38,11 +38,13 @@ import { TwitterPicker } from 'react-color';
 import { RxMargin } from "react-icons/rx";
 import { useModal } from '@/contexts/ModelContext';
 import MarginModal from './Margin';
-import { ImPageBreak } from "react-icons/im";
 
 
-
-const ToolBar = () => {
+const ToolBar = ({
+    setMargins
+}:{
+    setMargins: (margins: { top: number; bottom: number; left: number; right: number } | ((prev: any) => any)) => void;
+}) => {
     const [editor] = useLexicalComposerContext();
     const {
         selectionMap,
@@ -70,6 +72,8 @@ const ToolBar = () => {
     const {showModal} = useModal()
 
     console.log(color);
+
+    setMargins(margins)
 
 
     useEffect(() => {
@@ -204,9 +208,7 @@ const ToolBar = () => {
         }
     };
 
-    const NewPage = ()=>{
-        // editor.dispatchCommand(INSERT_PAGE_BREAK, undefined)
-    }
+
 
     const FILE_NAME = "untitled"
 
@@ -352,14 +354,14 @@ const ToolBar = () => {
                     <button onClick={()=>showModal(<MarginModal />)} className='flex items-center justify-center gap-1 cursor-pointer flex-col'>
                         <RxMargin size={22} />
                     </button>
-                    <button onClick={NewPage} className='flex items-center justify-center gap-1 cursor-pointer flex-col'>
+                    {/* <button onClick={NewPage} className='flex items-center justify-center gap-1 cursor-pointer flex-col'>
                         <ImPageBreak size={22} />
-                    </button>
+                    </button> */}
                 </div>
 
 
                 <div className="flex items-center h-full justify-center gap-2 px-2">
-                    <button className='px-4 py-1.5  bg-lblue text-black rounded-lg font-thin text-sm' onClick={() => {
+                    <button className='px-4 py-1.5  bg-lblue text-black rounded-lg font-thin text-sm cursor-pointer' onClick={() => {
                         handleClick(editor,{margins})
                     }}>Export</button>
                 </div>

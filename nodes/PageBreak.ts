@@ -2,7 +2,6 @@
 import {
   DecoratorNode,
   EditorConfig,
-  LexicalEditor,
   NodeKey,
   SerializedLexicalNode
 } from "lexical";
@@ -23,15 +22,27 @@ export class PageBreakNode extends DecoratorNode<JSX.Element> {
 
   createDOM(config: EditorConfig): HTMLElement {
     const div = document.createElement("div");
+
+    // Safe extraction of custom margins from theme
+    const margins = config.theme?.margins as { top?: number; bottom?: number } | undefined;
+    const topMargin = margins?.top ?? 1;
+    const bottomMargin = margins?.bottom ?? 1;
+
     div.className = "page-break-node";
-    div.style.height = "100px"
-     div.style.width = "794px"
-     div.style.margin = "0 -96px 48px -96px"; 
-    div.style.background = "#fafafa                   ";
-    div.style.borderLeft = "1px solid  #FCFCFC";
-    div.style.borderRight = "1px solid   #FCFCFC";
+
+    div.style.height = "100px";
+    div.style.width = "794px";
+
+    // horizontal margin fixed, vertical dynamic
+    div.style.margin = `0 -96px ${bottomMargin * 96}px -96px`;
+    div.style.marginTop = `${topMargin * 96}px`;
+
+    div.style.background = "#fafafa";
+    div.style.borderLeft = "1px solid #FCFCFC";
+    div.style.borderRight = "1px solid #FCFCFC";
     div.style.textAlign = "center";
-    div.style.zIndex = "100"
+    div.style.zIndex = "100";
+
     return div;
   }
 
@@ -41,7 +52,6 @@ export class PageBreakNode extends DecoratorNode<JSX.Element> {
 
   decorate(): JSX.Element {
     return React.createElement('div');
-
   }
 
   static importJSON(): PageBreakNode {
