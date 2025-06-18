@@ -1,32 +1,43 @@
-import { LexicalCommand, createCommand } from "lexical";
-import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { $insertNodes, $getSelection } from "lexical";
+// plugins/PageBreakPlugin.tsx
 import { useEffect } from "react";
-import { PageBreakNode, $createPageBreakNode } from "@/nodes/PageBreak";
+import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
+import { $getRoot } from "lexical";
+import { $createPageBreakNode } from "@/nodes/PageBreak";
 
-export const INSERT_PAGE_BREAK: LexicalCommand<void> = createCommand("INSERT_PAGE_BREAK");
+const A4_HEIGHT = 1123;
 
-export default function PageBreakPlugin() {
+const PageBreakPlugin = () => {
   const [editor] = useLexicalComposerContext();
 
   useEffect(() => {
-    if (!editor.hasNodes([PageBreakNode])) {
-      editor.registerNodeTransform(PageBreakNode, () => {});
-    }
+    let alreadyInserted = false;
 
-    return editor.registerCommand(
-      INSERT_PAGE_BREAK,
-      () => {
-        const selection = $getSelection();
-        if (selection) {
-          $insertNodes([$createPageBreakNode()]);
-          return true;
-        }
-        return false;
-      },
-      0
-    );
+    const checkHeightAndInsertBreak = () => {
+      const editorRoot = document.querySelector(".editor");
+      if (!editorRoot) return;
+
+      const height = editorRoot.scrollHeight;
+
+      if (height > A4_HEIGHT && !alreadyInserted) {
+        alreadyInserted = true;
+
+        editor.update(() => {
+          const root = $getRoot();
+          root.append($createPageBreakNode());
+        });
+      }
+    };
+
+    const unregister = editor.registerUpdateListener(({ editorState }) => {
+      editorState.read(() => {
+        checkHeightAndInsertBreak();
+      });
+    });
+
+    return () => unregister();
   }, [editor]);
 
   return null;
-}
+};
+
+export default PageBreakPlugin;

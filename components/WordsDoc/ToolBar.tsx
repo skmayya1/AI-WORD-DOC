@@ -38,7 +38,6 @@ import { TwitterPicker } from 'react-color';
 import { RxMargin } from "react-icons/rx";
 import { useModal } from '@/contexts/ModelContext';
 import MarginModal from './Margin';
-import { INSERT_PAGE_BREAK } from '@/plugins/PageBreakPlugin';
 import { ImPageBreak } from "react-icons/im";
 
 
@@ -206,7 +205,7 @@ const ToolBar = () => {
     };
 
     const NewPage = ()=>{
-        editor.dispatchCommand(INSERT_PAGE_BREAK, undefined)
+        // editor.dispatchCommand(INSERT_PAGE_BREAK, undefined)
     }
 
     const FILE_NAME = "untitled"

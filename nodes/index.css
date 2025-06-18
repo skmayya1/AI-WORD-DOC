@@ -53,3 +53,37 @@
     opacity: 1;
   }
   
+  .page-break {
+    page-break-after: always;
+    page-break-before: always;
+    break-after: page;
+    break-before: page;
+    border-top: 2px dashed #ccc;
+    margin: 24px 0;
+    height: 20px;
+    position: relative;
+  }
+  
+  /* For print media */
+  @media print {
+    .page-break {
+      page-break-after: always;
+      page-break-before: always;
+      break-after: page;
+      break-before: page;
+      border-top: 2px dashed #ccc;
+      margin: 24px 0;
+      height: 20px;
+    }
+  }
+  
+  /* For editor view */
+  .editor {
+    position: relative;
+  }
+  
+  .editor .page-break {
+    position: relative;
+    z-index: 1;
+  }
+  

@@ -10,7 +10,8 @@ import {
     KEY_BACKSPACE_COMMAND,
     KEY_ESCAPE_COMMAND,
     $getRoot,
-    $isElementNode
+    $isElementNode,
+    LexicalEditor
 } from 'lexical';
 import { mergeRegister } from "@lexical/utils";
 import { fontFamilyOptions, fontSizeOptions, lineHeightOptions, RichTextAction, stylesOptions } from '@/lib/constants';
@@ -19,6 +20,7 @@ import { ColorResult } from 'react-color';
 
 
 interface EditorContextType {
+    editor : LexicalEditor
     // Selection state
     selectionMap: { [id: string]: boolean };
     currAlignment: ElementFormatType;
@@ -53,6 +55,7 @@ const EditorContext = createContext<EditorContextType | undefined>(undefined);
 
 export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [editor] = useLexicalComposerContext();
+
     const [selectionMap, setSelectionMap] = useState<{ [id: string]: boolean }>({});
     const [currAlignment, setCurrAlignment] = useState<ElementFormatType>("left");
     const [canUndo, setCanUndo] = useState(false);
@@ -159,6 +162,7 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }, [editor, currentListType]);
 
     const value = {
+        editor,
         selectionMap,
         currAlignment,
         canUndo,
