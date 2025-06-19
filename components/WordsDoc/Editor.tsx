@@ -1,4 +1,3 @@
-// components/ReportViewer.tsx
 "use client";
 
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
@@ -7,75 +6,68 @@ import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin';
 import { ListPlugin } from '@lexical/react/LexicalListPlugin';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import { useEditorContext } from '@/contexts/EditorContext';
-import { $createParagraphNode, $getRoot } from 'lexical';
-// import { $createParagraphNode, $createTextNode, $getRoot } from 'lexical';
+import PageTools from './PageTools';
+import { PageBackgrounds } from './PageBackground';
+import PageBreakPlugin from '@/plugins/PageBreakPlugin';
+import { usePagination } from '@/hooks/Pagination';
 
-const A4_SIZEPX = {
-  HEIGHT: 1123,
-  WIDTH: '794px'
-}
 
-interface RichTextEditorProps { }
+interface RichTextEditorProps {}
 
 const ReportViewer: React.FC<RichTextEditorProps> = () => {
   const { margins, editor } = useEditorContext();
   const editorRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-
-    const checkContentHeight = () => {
-
-      const contentElement = editorRef.current
-      if (contentElement) {
-        const contentHeight = contentElement.scrollHeight;
-        const pageHeight = A4_SIZEPX.HEIGHT;
-
-        if (contentHeight >= pageHeight) {
-          
-          return true;
-        }
-      }
-      return false;
-    };
-
-    const unregisterUpdateListener = editor.registerUpdateListener(({ editorState }) => {
-      editorState.read(() => {
-        checkContentHeight();
-      });
-    });
-
-    return () => {
-      unregisterUpdateListener();
-    };
-  }, [editor]);
+  
+  const { pages, isRecalculating } = usePagination(editor, margins);
 
   return (
-    <div className="mx-auto my-14 flex flex-col items-center gap-24">
-      <RichTextPlugin
-        contentEditable={
-          <ContentEditable
-            ref={editorRef}
-            style={{
-              paddingLeft: margins.left * 96,
-              paddingRight: margins.right * 96,
-              paddingTop: margins.top * 96,
-              paddingBottom: margins.bottom * 96,
-            }}
-            className={`select-text outline-0 w-[794px] editor z-0  bg-white min-h-[1123px]`}
+    <div className="mx-auto relative my-10 flex items-start justify-center min-h-screen">
+      {/* Fixed page tools */}
+      <div className="fixed bottom-5 z-50">
+        <PageTools />
+      </div>
+
+      {/* Main editor container */}
+      <div className="relative">
+        {/* Page backgrounds */}
+        <PageBackgrounds pages={pages} />
+        
+        {/* Loading indicator */}
+        {isRecalculating && (
+          <div className="absolute top-4 right-4 z-10 bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
+            Calculating pages...
+          </div>
+        )}
+
+        {/* Editor */}
+        <div className="relative z-20">
+          <RichTextPlugin
+            contentEditable={
+              <ContentEditable
+                ref={editorRef}
+                className="editor-content select-text outline-0 w-[794px] min-h-[1123px]"
+                style={{
+                  paddingLeft: margins.left * 96,
+                  paddingRight: margins.right * 96,
+                  paddingTop: margins.top * 96,
+                  paddingBottom: margins.bottom * 96,
+                }}
+              />
+            }
+            placeholder={null}
+            ErrorBoundary={LexicalErrorBoundary}
           />
-
-        }
-        placeholder={null}
-        ErrorBoundary={LexicalErrorBoundary}
-      />
-
-      <HistoryPlugin />
-      <ListPlugin hasStrictIndent />
-      <AutoFocusPlugin />
+          
+          <HistoryPlugin />
+          <ListPlugin hasStrictIndent />
+          <AutoFocusPlugin />
+          <PageBreakPlugin />
+        </div>
+      </div>
     </div>
   );
-}
+};
 
 export default ReportViewer;

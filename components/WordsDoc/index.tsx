@@ -8,7 +8,6 @@ import ToolBar from './ToolBar';
 import { EditorProvider } from '@/contexts/EditorContext';
 import theme from '@/themes';
 import { ModalProvider } from '@/contexts/ModelContext';
-// import { PageNode } from '@/nodes/PageBreak';
 
 
 const WordsViewer = () => {
@@ -27,7 +26,7 @@ const WordsViewer = () => {
             HeadingNode,
             QuoteNode,
             CodeNode,
-            // PageNode
+            // PageBreakNode
         ],
     };
 
