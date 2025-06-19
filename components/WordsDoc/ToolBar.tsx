@@ -40,11 +40,7 @@ import { useModal } from '@/contexts/ModelContext';
 import MarginModal from './Margin';
 
 
-const ToolBar = ({
-    setMargins
-}:{
-    setMargins: (margins: { top: number; bottom: number; left: number; right: number } | ((prev: any) => any)) => void;
-}) => {
+const ToolBar = () => {
     const [editor] = useLexicalComposerContext();
     const {
         selectionMap,
@@ -71,9 +67,6 @@ const ToolBar = ({
     const colorPickerRef = useRef<HTMLDivElement>(null);
     const {showModal} = useModal()
 
-    console.log(color);
-
-    setMargins(margins)
 
 
     useEffect(() => {
@@ -215,9 +208,8 @@ const ToolBar = ({
     return (
         <div className='min-h-16 w-full p-2 relative'>
             {isModalOpen && (
-                <div className="absolute top-18 right-117" ref={colorPickerRef}>
+                <div className="absolute top-18 right-117 z-10" ref={colorPickerRef}>
                     <TwitterPicker
-
                         color={color}
                         onChangeComplete={changeColor}
                     />

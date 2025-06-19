@@ -8,24 +8,15 @@ import ToolBar from './ToolBar';
 import { EditorProvider } from '@/contexts/EditorContext';
 import theme from '@/themes';
 import { ModalProvider } from '@/contexts/ModelContext';
-import { PageBreakNode } from '@/nodes/PageBreak';
+// import { PageNode } from '@/nodes/PageBreak';
 
 
 const WordsViewer = () => {
-    const [margins, setMargins] = useState({
-        top: 1.0,
-        bottom: 1.0, 
-        left: 1.0,
-        right: 1.0
-    });
 
-    const extendedTheme  = {
-        ...theme,
-        margins
-    }
+
     const initialConfig = {
         namespace: 'ReportViewer',
-        extendedTheme,
+        theme,  
         onError(error: Error) {
             throw error;
         },
@@ -36,7 +27,7 @@ const WordsViewer = () => {
             HeadingNode,
             QuoteNode,
             CodeNode,
-            PageBreakNode
+            // PageNode
         ],
     };
 
@@ -45,7 +36,7 @@ const WordsViewer = () => {
             <LexicalComposer initialConfig={initialConfig}>
                 <EditorProvider>
                     <ModalProvider>
-                        <ToolBar setMargins={setMargins}  />
+                        <ToolBar />
                         <div className="overflow-auto scrollbar-thin h-full max-h-[93%] w-full py-4">
                             <LexicalEditor />
                             <div className="">

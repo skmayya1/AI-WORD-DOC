@@ -1,83 +1,81 @@
-// plugins/PageBreakNode.ts
-import {
-  DecoratorNode,
-  EditorConfig,
-  NodeKey,
-  SerializedLexicalNode
-} from "lexical";
-import React, { JSX } from "react";
+// import {
+//   ElementNode,
+//   SerializedElementNode,
+//   NodeKey,
+//   $applyNodeReplacement
+// } from "lexical";
 
-export class PageBreakNode extends DecoratorNode<JSX.Element> {
-  static getType(): string {
-    return "pagebreak";
-  }
+// type Padding = {
+//   top: number;
+//   right: number;
+//   bottom: number;
+//   left: number;
+// };
 
-  static clone(node: PageBreakNode): PageBreakNode {
-    return new PageBreakNode(node.__key);
-  }
+// export class PageNode extends ElementNode {
+//   __padding: Padding;
 
-  constructor(key?: NodeKey) {
-    super(key);
-  }
+//   constructor(padding: Padding = { top: 60, right: 60, bottom: 60, left: 60 }, key?: NodeKey) {
+//     super(key);
+//     this.__padding = padding;
+//   }
 
-  createDOM(config: EditorConfig): HTMLElement {
-    const div = document.createElement("div");
+//   static getType(): string {
+//     return "page";  
+//   }
 
-    // Safe extraction of custom margins from theme
-    const margins = config.theme?.margins as { top?: number; bottom?: number } | undefined;
-    const topMargin = margins?.top ?? 1;
-    const bottomMargin = margins?.bottom ?? 1;
+//   static clone(node: PageNode): PageNode {
+//     return new PageNode(node.__padding, node.__key);
+//   }
 
-    div.className = "page-break-node";
+//   createDOM(): HTMLElement {
+//     const div = document.createElement("div");
+//     div.className = "select-text outline-0 w-[794px] editor z-0 bg-white h-[1123px] border overflow-hidden";
+//     this.applyPaddingStyle(div);
+//     return div;
+//   }
 
-    div.style.height = "100px";
-    div.style.width = "794px";
+//   updateDOM(prevNode: PageNode, dom: HTMLElement): boolean {
+//     if (JSON.stringify(prevNode.__padding) !== JSON.stringify(this.__padding)) {
+//       this.applyPaddingStyle(dom);
+//       return true;
+//     }
+//     return false;
+//   }
 
-    // horizontal margin fixed, vertical dynamic
-    div.style.margin = `0 -96px ${bottomMargin * 96}px -96px`;
-    div.style.marginTop = `${topMargin * 96}px`;
+//   applyPaddingStyle(dom: HTMLElement) {
+//     dom.style.paddingTop = `${this.__padding.top * 96}px`;
+//     dom.style.paddingRight = `${this.__padding.right  * 96}px`;
+//     dom.style.paddingBottom = `${this.__padding.bottom  * 96}px`;
+//     dom.style.paddingLeft = `${this.__padding.left  * 96}px`; 
+//   }
 
-    div.style.background = "#fafafa";
-    div.style.borderLeft = "1px solid #FCFCFC";
-    div.style.borderRight = "1px solid #FCFCFC";
-    div.style.textAlign = "center";
-    div.style.zIndex = "100";
+//   static importJSON(serializedNode: SerializedElementNode & { padding?: Padding }): PageNode {
+//     const node = new PageNode(serializedNode.padding || { top: 60, right: 60, bottom: 60, left: 60 });
+//     node.setFormat(serializedNode.format);
+//     return node;
+//   }
 
-    return div;
-  }
+//   exportJSON(): SerializedElementNode & { padding: Padding } {
+//     return {
+//       ...super.exportJSON(),
+//       type: "page",
+//       version: 1,
+//       padding: this.__padding,
+//     };
+//   }
+//   canContainText(): boolean {
+//     return true;
+//   }
+//   isInline(): boolean {
+//     return false;
+//   }
+// }
 
-  updateDOM(): false {
-    return false;
-  }
+// export function $createPageNode(padding?: Padding): PageNode {
+//   return $applyNodeReplacement(new PageNode(padding));
+// }
 
-  decorate(): JSX.Element {
-    return React.createElement('div');
-  }
-
-  static importJSON(): PageBreakNode {
-    return new PageBreakNode();
-  }
-
-  exportJSON(): SerializedLexicalNode {
-    return {
-      type: "pagebreak",
-      version: 1,
-    };
-  }
-
-  isInline(): boolean {
-    return false;
-  }
-
-  isIsolated(): boolean {
-    return true;
-  }
-
-  isTopLevel(): boolean {
-    return true;
-  }
-}
-
-export function $createPageBreakNode(): PageBreakNode {
-  return new PageBreakNode();
-}
+// export function $isPageNode(node: unknown): node is PageNode {
+//   return node instanceof PageNode;
+// }
