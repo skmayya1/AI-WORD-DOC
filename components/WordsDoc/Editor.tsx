@@ -9,9 +9,9 @@ import { ListPlugin } from '@lexical/react/LexicalListPlugin';
 import React, { useRef } from 'react';
 import { useEditorContext } from '@/contexts/EditorContext';
 import PageTools from './PageTools';
-import { PageBackgrounds } from './PageBackground';
 import PageBreakPlugin from '@/plugins/PageBreakPlugin';
 import { usePagination } from '@/hooks/Pagination';
+import { PageBackgrounds } from './PageBackground';
 
 
 interface RichTextEditorProps {}
@@ -47,7 +47,7 @@ const ReportViewer: React.FC<RichTextEditorProps> = () => {
             contentEditable={
               <ContentEditable
                 ref={editorRef}
-                className="editor-content select-text outline-0 w-[794px] min-h-[1123px]"
+                className="editor-content select-text outline-0 w-[794px] min-h-[1123px] bg-transparent"
                 style={{
                   paddingLeft: margins.left * 96,
                   paddingRight: margins.right * 96,

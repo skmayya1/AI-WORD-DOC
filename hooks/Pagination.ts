@@ -4,6 +4,7 @@ import { LexicalEditor } from 'lexical';
 const A4_CONFIG = {
   HEIGHT: 1123,
   WIDTH: 794,
+  // Adjust based on your margins
   MARGIN_TOP: 96,
   MARGIN_BOTTOM: 96,
   MARGIN_LEFT: 96,
@@ -45,7 +46,7 @@ export const usePagination = (editor: LexicalEditor, margins: any) => {
         const computedStyle = window.getComputedStyle(node);
         const marginTop = parseFloat(computedStyle.marginTop) || 0;
         const marginBottom = parseFloat(computedStyle.marginBottom) || 0;
-        
+
         measurements.push({
           element: node,
           height: rect.height + marginTop + marginBottom,
@@ -60,55 +61,71 @@ export const usePagination = (editor: LexicalEditor, margins: any) => {
 
   const calculatePagination = () => {
     setIsRecalculating(true);
-    
+
     const measurements = measureNodes();
-    const availableHeight = getAvailablePageHeight();
-    let currentPageHeight = margins.top * 96; // Start with top margin
+    const availablePageHeight = getAvailablePageHeight();
+    let absolutePosition = margins.top * 96; // Start with top margin
     let currentPage = 1;
     const newPages: PageInfo[] = [];
-    
-    // Add first page
+
+    // Add first page with consistent height calculation
+    const firstPageStartY = 0;
+    const firstPageEndY = firstPageStartY + A4_CONFIG.HEIGHT;
+    const firstPageContentEndY = firstPageStartY + (margins.top * 96) + availablePageHeight;
+
     newPages.push({
       pageNumber: 1,
-      startY: 0,
-      endY: A4_CONFIG.HEIGHT
+      startY: firstPageStartY,
+      endY: firstPageEndY
     });
 
     measurements.forEach((measurement, index) => {
       const { element, height, pageBreak } = measurement;
-      
+
       // Check if this is a page break node
       if (pageBreak) {
         // Force start new page
-        const nextPageStartY = currentPage * A4_CONFIG.HEIGHT;
-        const marginTopNeeded = nextPageStartY - currentPageHeight;
-        
-        element.style.marginTop = `${marginTopNeeded}px`;
-        
         currentPage++;
-        currentPageHeight = nextPageStartY + (margins.top * 96);
-        
+        const nextPageStartY = (currentPage - 1) * A4_CONFIG.HEIGHT;
+        const targetPosition = nextPageStartY + (margins.top * 96);
+        const marginTopNeeded = targetPosition - absolutePosition;
+
+        element.style.marginTop = `${marginTopNeeded}px`;
+        absolutePosition = targetPosition + height;
+
         newPages.push({
           pageNumber: currentPage,
           startY: nextPageStartY,
           endY: nextPageStartY + A4_CONFIG.HEIGHT
         });
-        
+
         return;
       }
-      
-      // Check if adding this node would exceed current page
-      if (currentPageHeight + height > (currentPage * A4_CONFIG.HEIGHT) - (margins.bottom * 96)) {
-        // Calculate distance to next page
-        const nextPageStartY = currentPage * A4_CONFIG.HEIGHT;
-        const marginTopNeeded = nextPageStartY - currentPageHeight + (margins.top * 96);
-        
+
+      // Calculate current page boundaries consistently
+      const currentPageStartY = (currentPage - 1) * A4_CONFIG.HEIGHT;
+      const currentPageContentStartY = currentPageStartY + (margins.top * 96);
+      const currentPageContentEndY = currentPageStartY + (margins.top * 96) + availablePageHeight;
+
+      createDebugLine(currentPageStartY, `Page ${currentPage} Start`, 'blue');
+      createDebugLine(currentPageContentStartY, `Page ${currentPage} Content Start`, 'green');
+      createDebugLine(currentPageContentEndY, `Page ${currentPage} Content End`, 'orange');
+      createDebugLine(currentPageStartY + A4_CONFIG.HEIGHT, `Page ${currentPage} End`, 'red');
+
+      // Check if adding this node would exceed current page content boundary
+      if (absolutePosition + height > currentPageContentEndY) {
+        // Move to next page
+        currentPage++;
+
+        const nextPageStartY = (currentPage - 1) * A4_CONFIG.HEIGHT;
+        const nextPageContentStartY = nextPageStartY + (margins.top * 96);
+        const marginTopNeeded = nextPageContentStartY - absolutePosition;
+
         // Apply margin to push element to next page
         element.style.marginTop = `${marginTopNeeded}px`;
-        
-        currentPage++;
-        currentPageHeight = nextPageStartY + (margins.top * 96) + height;
-        
+        absolutePosition = nextPageContentStartY + height;
+
+        // Add new page
         newPages.push({
           pageNumber: currentPage,
           startY: nextPageStartY,
@@ -117,7 +134,7 @@ export const usePagination = (editor: LexicalEditor, margins: any) => {
       } else {
         // Element fits on current page
         element.style.marginTop = '';
-        currentPageHeight += height;
+        absolutePosition += height;
       }
     });
 
@@ -129,7 +146,7 @@ export const usePagination = (editor: LexicalEditor, margins: any) => {
     if (measurementTimeoutRef.current) {
       clearTimeout(measurementTimeoutRef.current);
     }
-    
+
     measurementTimeoutRef.current = setTimeout(() => {
       calculatePagination();
     }, 100); // Small delay to allow DOM to update
@@ -161,4 +178,46 @@ export const usePagination = (editor: LexicalEditor, margins: any) => {
     recalculate: calculatePagination,
     availableHeight: getAvailablePageHeight()
   };
+};
+
+
+const createDebugLine = (yPosition: number, label: string, color: string) => {
+  const editorContainer = document.querySelector('.mx-auto.relative.my-10') as HTMLElement;
+  if (!editorContainer) return;
+
+  // Remove existing debug lines to prevent accumulation
+  const existingLines = editorContainer.querySelectorAll('.debug-page-line');
+  existingLines.forEach(line => line.remove());
+
+  const line = document.createElement('div');
+  line.className = 'debug-page-line';
+  line.style.cssText = `
+      position: absolute;
+      top: ${yPosition}px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: ${color};
+      border-top: 2px dashed ${color};
+      z-index: 100;
+      pointer-events: none;
+    `;
+
+  // Add label
+  const labelEl = document.createElement('div');
+  labelEl.textContent = label;
+  labelEl.style.cssText = `
+      position: absolute;
+      top: -20px;
+      left: 10px;
+      background: ${color};
+      color: white;
+      padding: 2px 6px;
+      font-size: 10px;
+      border-radius: 3px;
+      white-space: nowrap;
+    `;
+
+  line.appendChild(labelEl);
+  editorContainer.appendChild(line);
 };

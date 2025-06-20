@@ -1,5 +1,6 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { $createParagraphNode, $getSelection, $insertNodes, COMMAND_PRIORITY_LOW, createCommand } from 'lexical';
+import { $createHeadingNode } from '@lexical/rich-text';
 import { useEffect } from 'react';
 
 export default function PageBreakPlugin() {
