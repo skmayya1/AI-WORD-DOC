@@ -11,7 +11,7 @@ import { useEditorContext } from '@/contexts/EditorContext';
 import PageTools from './PageTools';
 import PageBreakPlugin from '@/plugins/PageBreakPlugin';
 import { usePagination } from '@/hooks/Pagination';
-import { PageBackgrounds } from './PageBackground';
+// import { PageBackgrounds } from './PageBackground';
 
 
 interface RichTextEditorProps {}
@@ -32,11 +32,11 @@ const ReportViewer: React.FC<RichTextEditorProps> = () => {
       {/* Main editor container */}
       <div className="relative">
         {/* Page backgrounds */}
-        <PageBackgrounds pages={pages} />
+        {/* <PageBackgrounds pages={pages} /> */}
         
         {/* Loading indicator */}
         {isRecalculating && (
-          <div className="absolute top-4 right-4 z-10 bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
+          <div className="absolute top-4 ri ght-4 z-10 bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
             Calculating pages...
           </div>
         )}

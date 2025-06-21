@@ -1,6 +1,5 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { $createParagraphNode, $getSelection, $insertNodes, COMMAND_PRIORITY_LOW, createCommand } from 'lexical';
-import { $createHeadingNode } from '@lexical/rich-text';
 import { useEffect } from 'react';
 
 export default function PageBreakPlugin() {
@@ -17,11 +16,9 @@ export default function PageBreakPlugin() {
           const pageBreakNode = $createParagraphNode();
           pageBreakNode.setFormat('');
           
-          // Add a data attribute to mark this as a page break
           editor.update(() => {
             $insertNodes([pageBreakNode]);
             
-            // Set the page break attribute after insertion
             setTimeout(() => {
               const editorElement = document.querySelector('.editor-content');
               const paragraphs = editorElement?.querySelectorAll('p');
