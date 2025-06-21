@@ -26,7 +26,7 @@ const ReportViewer: React.FC<RichTextEditorProps> = () => {
     <div className="mx-auto relative my-10 flex items-start justify-center min-h-screen">
       {/* Fixed page tools */}
       <div className="fixed bottom-5 z-50">
-        <PageTools />
+        {/* <PageTools /> */}
       </div>
 
       {/* Main editor container */}
