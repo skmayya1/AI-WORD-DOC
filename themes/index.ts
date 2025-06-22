@@ -4,7 +4,7 @@ const theme: EditorThemeClasses = {
   autocomplete: 'text-gray-400',
   blockCursor: 'block pointer-events-none absolute after:content-[""] after:block after:absolute after:-top-0.5 after:w-5 after:border-t after:border-black after:animate-pulse',
   characterLimit: 'inline bg-red-200',
-  code: 'bg-gray-50 font-mono block py-3 px-4 leading-relaxed text-sm my-4 overflow-x-auto relative border border-gray-200 rounded-md',
+  code: ' font-mono block py-3 px-4 leading-relaxed text-sm my-4 overflow-x-auto relative border border-gray-200 rounded-md',
   codeHighlight: {
     atrule: 'text-blue-600',
     attr: 'text-blue-600',

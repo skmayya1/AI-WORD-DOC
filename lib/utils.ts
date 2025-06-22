@@ -1,8 +1,10 @@
+// Assuming this is in your utils/helpers.ts or similar file
 import { clsx, type ClassValue } from "clsx"
 import { $createParagraphNode, $getSelection, LexicalEditor } from "lexical";
 import { $setBlocksType } from '@lexical/selection';
 import prettier from "prettier/standalone";
 import parserHtml from "prettier/parser-html";
+// No longer need HtmlDocx on the client for DOCX generation
 
 import { twMerge } from "tailwind-merge"
 
@@ -19,23 +21,54 @@ export const formatParagraph = (editor: LexicalEditor) => {
 
 import { $generateHtmlFromNodes } from '@lexical/html';
 
-export const handleClick = async (editor: LexicalEditor, config: ConfigType) => {
+export const handleClick = async (editor: LexicalEditor, config: ConfigType, format: 'html' | 'docx') => {
   await editor.update(async () => {
     const editorState = editor.getEditorState();
     const jsonString = JSON.stringify(editorState);
-    console.log('jsonString', jsonString);
+    console.log('Lexical Editor State:', jsonString);
+
     const htmlString = $generateHtmlFromNodes(editor, null);
-    const compatibleHtml = await tailwindToInlineCSS(htmlString, config)
+    const compatibleHtml = await tailwindToInlineCSS(htmlString, config); // Still useful for general HTML output/clean up
 
-    console.log('tw to inline', compatibleHtml);
-    const blob = new Blob([compatibleHtml], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
+    console.log('HTML after Tailwind to Inline CSS:', compatibleHtml);
 
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'test.html';
-    a.click();
-    URL.revokeObjectURL(url);
+    if (format === 'html') {
+      const blob = new Blob([compatibleHtml], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'document.html'; // Changed filename
+      a.click();
+      URL.revokeObjectURL(url);
+    } else if (format === 'docx') {
+      try {
+        const response = await fetch('/api/convert', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ htmlContent: compatibleHtml, config }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to convert to DOCX');
+        }
+
+        const blob = await response.blob(); // Get the response as a Blob
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'document.docx'; // Changed filename
+        a.click();
+        URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error('Error downloading DOCX:', error);
+        alert(`Error: ${(error as Error).message}`);
+      }
+    }
   });
 };
 
@@ -81,7 +114,10 @@ export async function tailwindToInlineCSS(content: string, config: ConfigType): 
       result += alignAttribute;
     }
     if (otherStyles) {
-      result += ` style="${otherStyles.trim()}"`;
+      if (result) {
+        result += ' ';
+      }
+      result += `style="${otherStyles.trim()}"`;
     }
 
     return result;
@@ -91,9 +127,12 @@ export async function tailwindToInlineCSS(content: string, config: ConfigType): 
     /<body[^>]*>[\s\S]*<\/body>/i.test(convertedContent);
 
   if (hasHtmlStructure) {
-    return convertedContent;
+    const formatted = await prettier.format(convertedContent, {
+      parser: "html",
+      plugins: [parserHtml],
+    });
+    return formatted;
   }
-
 
   const { top, right, bottom, left } = config.margins;
 
@@ -102,9 +141,7 @@ export async function tailwindToInlineCSS(content: string, config: ConfigType): 
   const marginBottom = (bottom * 2.54).toFixed(2) + 'cm';
   const marginLeft = (left * 2.54).toFixed(2) + 'cm';
 
-  const finalHtml = hasHtmlStructure
-    ? convertedContent
-    : `<!DOCTYPE html>
+  const finalHtml = `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -112,18 +149,18 @@ export async function tailwindToInlineCSS(content: string, config: ConfigType): 
     <title>Document</title>
     <style>
         /* Basic document styles */
-  @page {
-      size: 21cm 29.7cm;
-      margin-top: ${marginTop};
-      margin-right: ${marginRight};
-      margin-bottom: ${marginBottom};
-      margin-left: ${marginLeft};
-    }
-        body { 
+        @page {
+            size: A4; /* Or 21cm 29.7cm */
+            margin-top: ${marginTop};
+            margin-right: ${marginRight};
+            margin-bottom: ${marginBottom};
+            margin-left: ${marginLeft};
+        }
+        body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             line-height: 1.6;
             margin: 0;
-            padding: 20px;
+            padding: 0;
             color: #333;
             background-color: #fff;
         }
@@ -132,10 +169,12 @@ export async function tailwindToInlineCSS(content: string, config: ConfigType): 
         h1, h2, h3, h4, h5, h6 { margin: 1.5rem 0 0.5rem 0; line-height: 1.2; }
         ul, ol { margin: 0 0 1rem 0; padding-left: 2rem; }
         li { margin: 0 0 0.25rem 0; }
-        table { margin: 1rem 0; }
-        blockquote { margin: 1rem 0 1rem 2rem; }
-        hr { margin: 2rem 0; }
-        code { font-family: 'Courier New', Courier, monospace; }
+        table { margin: 1rem 0; border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        blockquote { margin: 1rem 0 1rem 2rem; padding-left: 1rem; border-left: 4px solid #ccc; color: #666; }
+        hr { margin: 2rem 0; border: 0; border-top: 1px solid #eee; }
+        code { font-family: 'Courier New', Courier, monospace; background-color: #f4f4f4; padding: 2px 4px; border-radius: 4px; }
+        pre { background-color: #f4f4f4; padding: 1rem; border-radius: 4px; overflow-x: auto; }
     </style>
 </head>
 <body>
@@ -159,6 +198,7 @@ function convertBgClass(className: string): string {
     'bg-red-500': '#ef4444',
     'bg-blue-500': '#3b82f6',
     'bg-green-500': '#10b981',
+    // Add more Tailwind background colors and their hex values as needed
   };
-  return colorMap[className] || '#000';
+  return colorMap[className] || 'transparent';
 }

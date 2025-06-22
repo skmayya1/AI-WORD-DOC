@@ -12,14 +12,13 @@ import {
     $getRoot,
     $isElementNode,
     LexicalEditor,
-    COMMAND_PRIORITY_LOW
+    COMMAND_PRIORITY_LOW,
+    KEY_ENTER_COMMAND
 } from 'lexical';
-import { $patchStyleText } from '@lexical/selection';
 import { mergeRegister } from "@lexical/utils";
 import { fontFamilyOptions, fontSizeOptions, lineHeightOptions, RichTextAction, stylesOptions } from '@/lib/constants';
 import { $isListNode, INSERT_ORDERED_LIST_COMMAND, INSERT_UNORDERED_LIST_COMMAND, REMOVE_LIST_COMMAND } from '@lexical/list';
-import { ColorResult } from 'react-color';
-import ModalContext, { useModal } from './ModelContext';
+
 
 interface EditorContextType {
     editor: LexicalEditor;
@@ -95,7 +94,6 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       };
       
 
-    // Reset all states to default values
     const resetToDefaults = useCallback(() => {
         setSelectionMap(defaultValues.selectionMap);
         setCurrAlignment(defaultValues.currAlignment);
@@ -118,11 +116,9 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                 const anchorNode = selection.anchor.getNode();
                 const element = anchorNode.getTopLevelElementOrThrow();
 
-                // Sync alignment
                 const format = element.getFormatType();
                 setCurrAlignment(format);
 
-                // Sync list type
                 const root = $getRoot();
                 let foundListType: 'ordered' | 'unordered' | null = null;
 
@@ -197,6 +193,23 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                     }
                 });
             }),
+            editor.registerCommand(
+                KEY_ENTER_COMMAND,
+                () => {
+                  editor.update(() => {
+                    const selection = $getSelection();
+                    if ($isRangeSelection(selection) && selection.isCollapsed()) {
+                        setCurrentStyle(defaultValues.currentStyle)
+                      setCurrentFontSize(defaultValues.currentFontSize);
+                      setCurrentLineHeight(defaultValues.currentLineHeight);
+                    }
+                  });
+              
+                  return false;
+                },
+                COMMAND_PRIORITY_LOW
+              ),
+              
 
             // Selection change listener
             editor.registerCommand(
@@ -296,7 +309,6 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const setCurrentListTypeEnhanced = useCallback((type: 'ordered' | 'unordered' | null) => {
         setCurrentListType(type);
 
-        // Optionally trigger a sync after list type changes
         if (type === null) {
             setTimeout(() => syncWithCurrentNode(), 0);
         }

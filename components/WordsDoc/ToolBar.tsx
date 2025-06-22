@@ -173,7 +173,7 @@ const ToolBar = () => {
     }, []);
 
     const handleExport = useCallback(() => {
-        handleClick(editor, { margins });
+        handleClick(editor, { margins },"docx");
     }, [editor, margins]);
 
     const handleMarginModal = useCallback(() => {
@@ -271,12 +271,15 @@ const ToolBar = () => {
         <div className='min-h-16 w-full p-2 relative'>
             {isModalOpen && (
                 <div className="absolute top-18 right-117 z-10" ref={colorPickerRef}>
-                    <TwitterPicker color={color}
+                    <TwitterPicker
+                        colors={[
+                            '#000000', '#333333', '#666666', '#999999', '#cccccc', '#ffffff',
+                            '#FF5733', '#C70039', '#900C3F', '#2E86C1', '#28B463', '#F1C40F'
+                        ]}
+                        color={color}
                         onChangeComplete={(ColorResult: ColorResult) => {
                             changeColor(ColorResult.hex)
                             editor.focus();
-
-
                             editor.update(() => {
                                 const selection = $getSelection();
 
@@ -292,8 +295,6 @@ const ToolBar = () => {
 
                             })
                             setIsModalOpen(false)
-
-
                         }} />
                 </div>
             )}
