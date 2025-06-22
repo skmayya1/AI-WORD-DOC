@@ -14,9 +14,8 @@ import { usePagination } from '@/hooks/Pagination';
 // import { PageBackgrounds } from './PageBackground';
 
 
-interface RichTextEditorProps {}
 
-const ReportViewer: React.FC<RichTextEditorProps> = () => {
+const ReportViewer= () => {
   const { margins, editor } = useEditorContext();
   const editorRef = useRef<HTMLDivElement | null>(null);
   
