@@ -20,6 +20,7 @@ export const formatParagraph = (editor: LexicalEditor) => {
 };
 
 import { $generateHtmlFromNodes } from '@lexical/html';
+import { API_URL } from "./constants";
 
 export const handleClick = async (editor: LexicalEditor, config: ConfigType, format: 'html' | 'docx') => {
   await editor.update(async () => {
@@ -43,7 +44,7 @@ export const handleClick = async (editor: LexicalEditor, config: ConfigType, for
       URL.revokeObjectURL(url);
     } else if (format === 'docx') {
       try {
-        const response = await fetch('/api/convert', {
+        const response = await fetch(API_URL +'/api/convert', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
