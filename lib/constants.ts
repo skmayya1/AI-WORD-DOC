@@ -1,6 +1,3 @@
-import { SelectOption } from "@/components/DropDown";
-
-
 export enum RichTextAction {
   Bold = "bold",
   Italics = "italic",

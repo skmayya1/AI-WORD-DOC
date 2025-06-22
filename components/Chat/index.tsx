@@ -1,6 +1,6 @@
 import React from 'react'
 import Input from './Input'
-import Tabs from './Tabs'
+// import Tabs from './Tabs'
 import Header from './Header'
 
 const Chat = () => {

@@ -1,4 +1,4 @@
-import React, { use, useState } from 'react'
+import React from 'react'
 import LexicalEditor from './Editor';
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
 import { ListNode, ListItemNode } from '@lexical/list';

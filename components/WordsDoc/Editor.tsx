@@ -8,7 +8,7 @@ import { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin';
 import { ListPlugin } from '@lexical/react/LexicalListPlugin';
 import React, { useRef } from 'react';
 import { useEditorContext } from '@/contexts/EditorContext';
-import PageTools from './PageTools';
+// import PageTools from './PageTools';
 import PageBreakPlugin from '@/plugins/PageBreakPlugin';
 import { usePagination } from '@/hooks/Pagination';
 // import { PageBackgrounds } from './PageBackground';
@@ -20,7 +20,7 @@ const ReportViewer: React.FC<RichTextEditorProps> = () => {
   const { margins, editor } = useEditorContext();
   const editorRef = useRef<HTMLDivElement | null>(null);
   
-  const { pages, isRecalculating } = usePagination(editor, margins);
+  const { isRecalculating } = usePagination(editor, margins);
 
   return (
     <div className="mx-auto relative my-10 flex items-start justify-center min-h-screen">

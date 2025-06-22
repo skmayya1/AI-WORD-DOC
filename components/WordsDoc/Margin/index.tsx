@@ -1,6 +1,13 @@
 import React, { useState } from 'react'
-import { FileText, Maximize2, Minimize2, Square } from 'lucide-react'
+import { FileText, Maximize2, Minimize2 } from 'lucide-react'
 import { useEditorContext } from '@/contexts/EditorContext'
+
+interface Template {
+    id: string;
+    name: string;
+    icon: React.ReactNode;
+    values: { top: string; bottom: string; left: string; right: string };
+}
 
 const MarginModal: React.FC = () => {
 
@@ -8,7 +15,7 @@ const MarginModal: React.FC = () => {
 
     const [selectedTemplate, setSelectedTemplate] = useState('normal')
 
-    const templates = [
+    const templates: Template[] = [
         {
             id: 'normal',
             name: 'Normal',
@@ -37,9 +44,14 @@ const MarginModal: React.FC = () => {
         setSelectedTemplate('custom')
     }
 
-    const handleTemplateSelect = (template: any) => {
+    const handleTemplateSelect = (template: Template) => {
         setSelectedTemplate(template.id)
-        setMargins(template.values)
+        setMargins({
+            top: parseFloat(template.values.top),
+            bottom: parseFloat(template.values.bottom),
+            left: parseFloat(template.values.left),
+            right: parseFloat(template.values.right)
+        })
         
     }
 
@@ -65,7 +77,7 @@ const MarginModal: React.FC = () => {
                                     <div className="text-left">
                                         <div>{template.name}</div>
                                         <div className="text-xs opacity-70">
-                                            {template.values.top}" {template.values.bottom}" {template.values.left}" {template.values.right}"
+                                            {template.values.top}&quot; {template.values.bottom}&quot; {template.values.left}&quot; {template.values.right}&quot;
                                         </div>
                                     </div>
                                 </div>
