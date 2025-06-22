@@ -1,54 +1,56 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { 
-    $getSelection, 
-    $isRangeSelection, 
-    CAN_REDO_COMMAND, 
-    CAN_UNDO_COMMAND, 
-    SELECTION_CHANGE_COMMAND, 
+import {
+    $getSelection,
+    $isRangeSelection,
+    CAN_REDO_COMMAND,
+    CAN_UNDO_COMMAND,
+    SELECTION_CHANGE_COMMAND,
     ElementFormatType,
     KEY_BACKSPACE_COMMAND,
     KEY_ESCAPE_COMMAND,
     $getRoot,
     $isElementNode,
-    LexicalEditor
+    LexicalEditor,
+    COMMAND_PRIORITY_LOW
 } from 'lexical';
+import { $patchStyleText } from '@lexical/selection';
 import { mergeRegister } from "@lexical/utils";
 import { fontFamilyOptions, fontSizeOptions, lineHeightOptions, RichTextAction, stylesOptions } from '@/lib/constants';
-import { $isListNode } from '@lexical/list';
+import { $isListNode, INSERT_ORDERED_LIST_COMMAND, INSERT_UNORDERED_LIST_COMMAND, REMOVE_LIST_COMMAND } from '@lexical/list';
 import { ColorResult } from 'react-color';
-
+import ModalContext, { useModal } from './ModelContext';
 
 interface EditorContextType {
-    editor : LexicalEditor
+    editor: LexicalEditor;
     // Selection state
     selectionMap: { [id: string]: boolean };
     currAlignment: ElementFormatType;
     canUndo: boolean;
     canRedo: boolean;
-    color:string;
-    
+    color: string;
+
     // Current settings
-    currentListType:'ordered' | 'unordered' | null;
+    currentListType: 'ordered' | 'unordered' | null;
     currentStyle: string;
     currentFontFamily: string;
     currentFontSize: string;
     currentLineHeight: string;
     margins: { top: number; bottom: number; left: number; right: number };
 
-    
     // Setters
     setCurrentStyle: (style: string) => void;
     setCurrentFontFamily: (family: string) => void;
-    setCurrentListType: (type :'ordered' | 'unordered' | null) => void;
+    setCurrentListType: (type: 'ordered' | 'unordered' | null) => void;
     setCurrentFontSize: (size: string) => void;
     setCurrentLineHeight: (height: string) => void;
     setCurrAlignment: (alignment: ElementFormatType) => void;
     setMargins: (margins: { top: number; bottom: number; left: number; right: number } | ((prev: any) => any)) => void;
 
-    
     updateToolbar: () => void;
-    changeColor: (color:ColorResult) => void;
+    changeColor: (hex:string) => void;
+    resetToDefaults: () => void;
+    syncWithCurrentNode: () => void;
 }
 
 const EditorContext = createContext<EditorContextType | undefined>(undefined);
@@ -56,31 +58,100 @@ const EditorContext = createContext<EditorContextType | undefined>(undefined);
 export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [editor] = useLexicalComposerContext();
 
-    const [selectionMap, setSelectionMap] = useState<{ [id: string]: boolean }>({});
-    const [currAlignment, setCurrAlignment] = useState<ElementFormatType>("left");
-    const [canUndo, setCanUndo] = useState(false);
-    const [canRedo, setCanRedo] = useState(false);
-    const [currentStyle, setCurrentStyle] = useState(stylesOptions[0].value);
-    const [currentFontFamily, setCurrentFontFamily] = useState(fontFamilyOptions[3].value);
-    const [currentFontSize, setCurrentFontSize] = useState(fontSizeOptions[2].value);
-    const [currentLineHeight, setCurrentLineHeight] = useState(lineHeightOptions[2].value);
-    const [currentListType, setCurrentListType] = useState<'ordered' | 'unordered' | null>(null)
-    const [color, setcolor] = useState('#111111');
-    const [margins, setMargins] = useState({
-        top: 1.0,
-        bottom: 1.0, 
-        left: 1.0,
-        right: 1.0
-    });
+    const defaultValues = {
+        selectionMap: {},
+        currAlignment: "left" as ElementFormatType,
+        canUndo: false,
+        canRedo: false,
+        currentStyle: stylesOptions[0].value,
+        currentFontFamily: fontFamilyOptions[3].value,
+        currentFontSize: fontSizeOptions[2].value,
+        currentLineHeight: lineHeightOptions[2].value,
+        currentListType: null as 'ordered' | 'unordered' | null,
+        color: '#111111',
+        margins: {
+            top: 1.0,
+            bottom: 1.0,
+            left: 1.0,
+            right: 1.0
+        }
+    };
 
-    const changeColor = (color:ColorResult) =>{
-        setcolor(color.hex)
-    }
+    const [selectionMap, setSelectionMap] = useState<{ [id: string]: boolean }>(defaultValues.selectionMap);
+    const [currAlignment, setCurrAlignment] = useState<ElementFormatType>(defaultValues.currAlignment);
+    const [canUndo, setCanUndo] = useState(defaultValues.canUndo);
+    const [canRedo, setCanRedo] = useState(defaultValues.canRedo);
+    const [currentStyle, setCurrentStyle] = useState(defaultValues.currentStyle);
+    const [currentFontFamily, setCurrentFontFamily] = useState(defaultValues.currentFontFamily);
+    const [currentFontSize, setCurrentFontSize] = useState(defaultValues.currentFontSize);
+    const [currentLineHeight, setCurrentLineHeight] = useState(defaultValues.currentLineHeight);
+    const [currentListType, setCurrentListType] = useState<'ordered' | 'unordered' | null>(defaultValues.currentListType);
+    const [color, setcolor] = useState(defaultValues.color);
+    const [margins, setMargins] = useState(defaultValues.margins);
 
-    const updateToolbar = () => {
-        const selection = $getSelection();        
-        if ($isRangeSelection(selection)) {
+
+    const changeColor = (hex:string) => {
+        setcolor(hex);
+      };
+      
+
+    // Reset all states to default values
+    const resetToDefaults = useCallback(() => {
+        setSelectionMap(defaultValues.selectionMap);
+        setCurrAlignment(defaultValues.currAlignment);
+        setCanUndo(defaultValues.canUndo);
+        setCanRedo(defaultValues.canRedo);
+        setCurrentStyle(defaultValues.currentStyle);
+        setCurrentFontFamily(defaultValues.currentFontFamily);
+        setCurrentFontSize(defaultValues.currentFontSize);
+        setCurrentLineHeight(defaultValues.currentLineHeight);
+        setCurrentListType(defaultValues.currentListType);
+        setcolor(defaultValues.color);
+        setMargins(defaultValues.margins);
+    }, []);
+
+    // Sync states with the currently selected node
+    const syncWithCurrentNode = useCallback(() => {
+        editor.read(() => {
+            const selection = $getSelection();
+            if ($isRangeSelection(selection)) {
+                const anchorNode = selection.anchor.getNode();
+                const element = anchorNode.getTopLevelElementOrThrow();
+
+                // Sync alignment
+                const format = element.getFormatType();
+                setCurrAlignment(format);
+
+                // Sync list type
+                const root = $getRoot();
+                let foundListType: 'ordered' | 'unordered' | null = null;
+
+                root.getChildren().forEach((node) => {
+                    if ($isElementNode(node) && $isListNode(node)) {
+                        foundListType = node.getListType() === 'number' ? 'ordered' : 'unordered';
+                    }
+                });
+
+                setCurrentListType(foundListType);
+
+                // Sync text formatting
                 const newSelectionMap = {
+                    [RichTextAction.Bold]: selection.hasFormat("bold"),
+                    [RichTextAction.Italics]: selection.hasFormat("italic"),
+                    [RichTextAction.Underline]: selection.hasFormat("underline"),
+                    [RichTextAction.Strikethrough]: selection.hasFormat("strikethrough"),
+                    [RichTextAction.Code]: selection.hasFormat("code"),
+                    [RichTextAction.Highlight]: selection.hasFormat("highlight"),
+                };
+                setSelectionMap(newSelectionMap);
+            }
+        });
+    }, [editor]);
+
+    const updateToolbar = useCallback(() => {
+        const selection = $getSelection();
+        if ($isRangeSelection(selection)) {
+            const newSelectionMap = {
                 [RichTextAction.Bold]: selection.hasFormat("bold"),
                 [RichTextAction.Italics]: selection.hasFormat("italic"),
                 [RichTextAction.Underline]: selection.hasFormat("underline"),
@@ -90,40 +161,63 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             };
             setSelectionMap(newSelectionMap);
         }
-    };
+    }, []);
 
     useEffect(() => {
         return mergeRegister(
-            editor.registerUpdateListener(({ editorState }) => {
+            // Main update listener - handles most state updates
+            editor.registerUpdateListener(({ editorState, dirtyElements, dirtyLeaves, prevEditorState }) => {
                 editorState.read(() => {
                     updateToolbar();
+
+                    // Check for new nodes or significant structure changes
+                    const hasStructuralChanges = dirtyElements.size > 0;
+
+                    if (hasStructuralChanges) {
+                        // Sync with current node when structure changes
+                        syncWithCurrentNode();
+                    }
+
+                    // Handle list state
                     const root = $getRoot();
                     let hasList = false;
+                    let listType: 'ordered' | 'unordered' | null = null;
+
                     root.getChildren().forEach((node) => {
                         if ($isElementNode(node) && $isListNode(node)) {
                             hasList = true;
+                            listType = node.getListType() === 'number' ? 'ordered' : 'unordered';
                         }
                     });
+
                     if (!hasList && currentListType !== null) {
                         setCurrentListType(null);
+                    } else if (hasList && currentListType !== listType) {
+                        setCurrentListType(listType);
                     }
                 });
             }),
+
+            // Selection change listener
             editor.registerCommand(
                 SELECTION_CHANGE_COMMAND,
                 (payload) => {
                     updateToolbar();
+                    // Sync with new selection
+                    syncWithCurrentNode();
                     return false;
                 },
-                1
+                COMMAND_PRIORITY_LOW
             ),
+
+            // Undo/Redo state
             editor.registerCommand(
                 CAN_UNDO_COMMAND,
                 (payload) => {
                     setCanUndo(payload);
                     return false;
                 },
-                1
+                COMMAND_PRIORITY_LOW
             ),
             editor.registerCommand(
                 CAN_REDO_COMMAND,
@@ -131,35 +225,82 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                     setCanRedo(payload);
                     return false;
                 },
-                1
+                COMMAND_PRIORITY_LOW
             ),
+
+            // List command handlers - reset state when lists are modified
+            editor.registerCommand(
+                INSERT_ORDERED_LIST_COMMAND,
+                () => {
+                    setCurrentListType('ordered');
+                    return false;
+                },
+                COMMAND_PRIORITY_LOW
+            ),
+            editor.registerCommand(
+                INSERT_UNORDERED_LIST_COMMAND,
+                () => {
+                    setCurrentListType('unordered');
+                    return false;
+                },
+                COMMAND_PRIORITY_LOW
+            ),
+            editor.registerCommand(
+                REMOVE_LIST_COMMAND,
+                () => {
+                    setCurrentListType(null);
+                    return false;
+                },
+                COMMAND_PRIORITY_LOW
+            ),
+
             editor.registerCommand(
                 KEY_BACKSPACE_COMMAND,
                 () => {
                     const selection = $getSelection();
                     if ($isRangeSelection(selection)) {
                         const node = selection.anchor.getNode();
-                        if ($isListNode(node)) {
-                            // If we're at the start of a list item and pressing backspace
-                            if (selection.anchor.offset === 0) {
-                                setCurrentListType(null);
-                            }
+                        if ($isListNode(node) && selection.anchor.offset === 0) {
+                            setTimeout(() => {
+                                editor.read(() => {
+                                    const root = $getRoot();
+                                    let hasList = false;
+                                    root.getChildren().forEach((child) => {
+                                        if ($isElementNode(child) && $isListNode(child)) {
+                                            hasList = true;
+                                        }
+                                    });
+                                    if (!hasList) {
+                                        setCurrentListType(null);
+                                    }
+                                });
+                            }, 0);
                         }
                     }
                     return false;
                 },
-                1
+                COMMAND_PRIORITY_LOW
             ),
+
             editor.registerCommand(
                 KEY_ESCAPE_COMMAND,
                 () => {
-                    setCurrentListType(null);
+                    syncWithCurrentNode();
                     return false;
                 },
-                1
-            )
+                COMMAND_PRIORITY_LOW
+            ),
         );
-    }, [editor, currentListType]);
+    }, [editor, currentListType, updateToolbar, syncWithCurrentNode]);
+
+    const setCurrentListTypeEnhanced = useCallback((type: 'ordered' | 'unordered' | null) => {
+        setCurrentListType(type);
+
+        // Optionally trigger a sync after list type changes
+        if (type === null) {
+            setTimeout(() => syncWithCurrentNode(), 0);
+        }
+    }, [syncWithCurrentNode]);
 
     const value = {
         editor,
@@ -174,7 +315,7 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         currentListType,
         color,
         margins,
-        setCurrentListType,
+        setCurrentListType: setCurrentListTypeEnhanced,
         setCurrentStyle,
         setCurrentFontFamily,
         setCurrentFontSize,
@@ -182,7 +323,9 @@ export const EditorProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         setCurrAlignment,
         setMargins,
         updateToolbar,
-        changeColor
+        changeColor,
+        resetToDefaults,
+        syncWithCurrentNode
     };
 
     return (

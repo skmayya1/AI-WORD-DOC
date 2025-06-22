@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import Container from './Container';
 import SelectInput from '../DropDown';
 import {
@@ -23,9 +23,8 @@ import {
     TextFormatType,
     UNDO_COMMAND,
     REDO_COMMAND,
-
 } from 'lexical';
-import { INSERT_ORDERED_LIST_COMMAND, INSERT_UNORDERED_LIST_COMMAND } from '@lexical/list';
+import { INSERT_ORDERED_LIST_COMMAND, INSERT_UNORDERED_LIST_COMMAND, REMOVE_LIST_COMMAND } from '@lexical/list';
 import {
     $createHeadingNode,
     $createQuoteNode,
@@ -33,12 +32,13 @@ import {
 import { $createCodeNode } from '@lexical/code';
 import { $patchStyleText, $setBlocksType } from '@lexical/selection';
 import { useEditorContext } from '@/contexts/EditorContext';
-import { formatParagraph, handleClick } from '@/lib/utils';
-import { TwitterPicker } from 'react-color';
+import { handleClick } from '@/lib/utils';
+import { ColorResult, TwitterPicker } from 'react-color';
 import { RxMargin } from "react-icons/rx";
 import { useModal } from '@/contexts/ModelContext';
 import MarginModal from './Margin';
 
+const FILE_NAME = "untitled";
 
 const ToolBar = () => {
     const [editor] = useLexicalComposerContext();
@@ -63,40 +63,35 @@ const ToolBar = () => {
         changeColor
     } = useEditorContext();
 
-    const [isModalOpen, setisModalOpen] = useState(false)
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const colorPickerRef = useRef<HTMLDivElement>(null);
-    const {showModal} = useModal()
+    const { showModal } = useModal();
 
-
-
+    // Optimized click outside handler
     useEffect(() => {
+        if (!isModalOpen) return;
+
         const handleClickOutside = (event: MouseEvent) => {
             if (colorPickerRef.current && !colorPickerRef.current.contains(event.target as Node)) {
-                setisModalOpen(false);
+                setIsModalOpen(false);
             }
         };
 
-        if (isModalOpen) {
-            document.addEventListener("mousedown", handleClickOutside);
-        }
-
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [isModalOpen]);
 
-
-
-    const handleUpdate = (value: TextFormatType) => {
+    // Memoized handlers to prevent unnecessary re-renders
+    const handleUpdate = useCallback((value: TextFormatType) => {
         editor.dispatchCommand(FORMAT_TEXT_COMMAND, value);
-    };
+    }, [editor]);
 
-    const handleAlignmentUpdate = (value: ElementFormatType) => {
+    const handleAlignmentUpdate = useCallback((value: ElementFormatType) => {
         setCurrAlignment(value);
         editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, value);
-    };
+    }, [editor, setCurrAlignment]);
 
-    const handleStyleChange = (style: string) => {
+    const handleStyleChange = useCallback((style: string) => {
         editor.update(() => {
             const selection = $getSelection();
             if ($isRangeSelection(selection)) {
@@ -105,14 +100,10 @@ const ToolBar = () => {
                         $setBlocksType(selection, () => $createParagraphNode());
                         break;
                     case 'title':
-                        $setBlocksType(selection, () => $createHeadingNode('h1'));
-                        break;
-                    case 'subtitle':
-                        $setBlocksType(selection, () => $createHeadingNode('h2'));
-                        break;
                     case 'heading1':
                         $setBlocksType(selection, () => $createHeadingNode('h1'));
                         break;
+                    case 'subtitle':
                     case 'heading2':
                         $setBlocksType(selection, () => $createHeadingNode('h2'));
                         break;
@@ -129,116 +120,192 @@ const ToolBar = () => {
             }
         });
         setCurrentStyle(style);
-    };
+    }, [editor, setCurrentStyle]);
 
-    const handleFontFamilyChange = (fontFamily: string) => {
+    const applyStyleToSelection = useCallback((styleProperty: string, value: string) => {
+        editor.update(() => {
+            if (editor.isEditable()) {
+                const selection = $getSelection();
+                if (selection !== null) {
+                    $patchStyleText(selection, { [styleProperty]: value });
+                }
+            }
+        });
+    }, [editor]);
+
+    const handleFontFamilyChange = useCallback((fontFamily: string) => {
         setCurrentFontFamily(fontFamily);
-        editor.update(() => {
-            if (editor.isEditable()) {
-                const selection = $getSelection();
-                if (selection !== null) {
-                    $patchStyleText(selection, {
-                        'font-family': fontFamily,
-                    });
-                }
-            }
-        })
-    };
+        applyStyleToSelection('font-family', fontFamily);
+    }, [setCurrentFontFamily, applyStyleToSelection]);
 
-    const handleFontSizeChange = (fontSize: string) => {
+    const handleFontSizeChange = useCallback((fontSize: string) => {
         setCurrentFontSize(fontSize);
-        editor.update(() => {
-            if (editor.isEditable()) {
-                const selection = $getSelection();
-                if (selection !== null) {
-                    $patchStyleText(selection, {
-                        'font-size': fontSize,
-                    });
-                }
-            }
-        })
-    };
+        applyStyleToSelection('font-size', fontSize);
 
-    const handleLineHeightChange = (lineHeight: string) => {
-        setCurrentLineHeight(lineHeight)
-        editor.update(() => {
-            if (editor.isEditable()) {
-                const selection = $getSelection();
-                if (selection !== null) {
-                    $patchStyleText(selection, {
-                        'line-height': lineHeight,
-                    });
-                }
-            }
-        })
-    };
+    }, [setCurrentFontSize, applyStyleToSelection]);
 
-    const handleUndoRedo = (action: string) => {
-        if (action === 'undo') {
-            editor.dispatchCommand(UNDO_COMMAND, undefined);
-        } else if (action === 'redo') {
-            editor.dispatchCommand(REDO_COMMAND, undefined);
+    const handleLineHeightChange = useCallback((lineHeight: string) => {
+        setCurrentLineHeight(lineHeight);
+        applyStyleToSelection('line-height', lineHeight);
+    }, [setCurrentLineHeight, applyStyleToSelection]);
+
+    const handleUndoRedo = useCallback((action: string) => {
+        const command = action === 'undo' ? UNDO_COMMAND : REDO_COMMAND;
+        editor.dispatchCommand(command, undefined);
+    }, [editor]);
+
+    const handleListCommand = useCallback((command: string) => {
+        const isUnorderedCommand = command === 'INSERT_UNORDERED_LIST_COMMAND';
+        const targetListType = isUnorderedCommand ? 'unordered' : 'ordered';
+        const lexicalCommand = isUnorderedCommand ? INSERT_UNORDERED_LIST_COMMAND : INSERT_ORDERED_LIST_COMMAND;
+
+        if (currentListType === targetListType) {
+            setCurrentListType(null);
+            editor.dispatchCommand(REMOVE_LIST_COMMAND, undefined);
+        } else {
+            setCurrentListType(targetListType);
+            editor.dispatchCommand(lexicalCommand, undefined);
         }
-    };
+    }, [editor, currentListType, setCurrentListType]);
 
-    const handleListCommand = (command: string) => {
-        if (command === 'INSERT_UNORDERED_LIST_COMMAND') {
-            if (currentListType === 'unordered') {
-                setCurrentListType(null);
-                formatParagraph(editor)
-            } else {
-                setCurrentListType('unordered');
-                editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined);
-            }
-        } else if (command === 'INSERT_ORDERED_LIST_COMMAND') {
-            if (currentListType === 'ordered') {
-                setCurrentListType(null);
-                formatParagraph(editor)
-            } else {
-                setCurrentListType('ordered');
-                editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
-            }
-        }
-    };
+    const handleColorToggle = useCallback(() => {
+        setIsModalOpen(prev => !prev);
+    }, []);
 
+    const handleExport = useCallback(() => {
+        handleClick(editor, { margins });
+    }, [editor, margins]);
 
+    const handleMarginModal = useCallback(() => {
+        showModal(<MarginModal />);
+    }, [showModal]);
 
-    const FILE_NAME = "untitled"
+    const undoRedoSection = useMemo(() => (
+        <div className="flex h-full w-fit items-center justify-center gap-4 border-r border-zinc-200 px-3">
+            {undoRedoActions.map((item) => {
+                const IconComponent = item.icon;
+                const isDisabled = item.action === 'undo' ? !canUndo : !canRedo;
+                return (
+                    <button
+                        key={item.action}
+                        className={`font-light cursor-pointer ${isDisabled ? 'opacity-50' : ''}`}
+                        onClick={() => handleUndoRedo(item.action)}
+                        disabled={isDisabled}
+                        title={item.label}
+                    >
+                        <IconComponent color='#8b8c89' size={22} />
+                    </button>
+                );
+            })}
+        </div>
+    ), [canUndo, canRedo, handleUndoRedo]);
+
+    const formatButtonsSection = useMemo(() => (
+        <div className="flex items-center gap-1.5 px-2">
+            {textFormatActions.map((formatAction) => {
+                const IconComponent = formatAction.icon;
+                const actionKey = RichTextAction[formatAction.key as keyof typeof RichTextAction];
+
+                return (
+                    <Container
+                        key={formatAction.action}
+                        Checked={selectionMap[actionKey]}
+                        handleClick={() => handleUpdate(formatAction.action as TextFormatType)}
+                    >
+                        <button title={formatAction.label}>
+                            <IconComponent color='#022B3A' size={12} />
+                        </button>
+                    </Container>
+                );
+            })}
+
+            <div
+                onClick={handleColorToggle}
+                className="flex flex-col items-center justify-center cursor-pointer leading-14 relative"
+            >
+                <p className='font-semibold text-sm'>A</p>
+                <span style={{ backgroundColor: color }} className='h-1 w-4 rounded-md' />
+            </div>
+        </div>
+    ), [selectionMap, handleUpdate, color, handleColorToggle]);
+
+    const alignmentSection = useMemo(() => (
+        <div className="flex items-center h-full justify-center gap-2 px-5 border-r border-zinc-200">
+            {alignmentOptions.map((alignOption) => {
+                const IconComponent = alignOption.icon;
+                return (
+                    <Container
+                        key={alignOption.alignment}
+                        handleClick={() => handleAlignmentUpdate(alignOption.alignment as ElementFormatType)}
+                        Checked={currAlignment === alignOption.alignment}
+                    >
+                        <button title={alignOption.label}>
+                            <IconComponent color='#022B3A' size={16} />
+                        </button>
+                    </Container>
+                );
+            })}
+        </div>
+    ), [currAlignment, handleAlignmentUpdate]);
+
+    const listSection = useMemo(() => (
+        <div className="flex items-center gap-1.5">
+            {listOptions.map((listOption) => {
+                const IconComponent = listOption.icon;
+                return (
+                    <Container
+                        Checked={currentListType === listOption.type}
+                        key={listOption.type}
+                        handleClick={() => handleListCommand(listOption.command)}
+                    >
+                        <button title={listOption.label}>
+                            <IconComponent color='#022B3A' size={16} />
+                        </button>
+                    </Container>
+                );
+            })}
+        </div>
+    ), [currentListType, handleListCommand]);
 
     return (
         <div className='min-h-16 w-full p-2 relative'>
             {isModalOpen && (
                 <div className="absolute top-18 right-117 z-10" ref={colorPickerRef}>
-                    <TwitterPicker
-                        color={color}
-                        onChangeComplete={changeColor}
-                    />
+                    <TwitterPicker color={color}
+                        onChangeComplete={(ColorResult: ColorResult) => {
+                            changeColor(ColorResult.hex)
+                            editor.focus();
+
+
+                            editor.update(() => {
+                                const selection = $getSelection();
+
+                                if (!selection || !$isRangeSelection(selection)) {
+                                    console.warn("No valid selection after focus");
+                                    return;
+                                }
+                                if (selection.isCollapsed()) {
+                                    selection.setStyle(`color:${ColorResult.hex}`);
+                                } else {
+                                    $patchStyleText(selection, { color: ColorResult.hex });
+                                }
+
+                            })
+                            setIsModalOpen(false)
+
+
+                        }} />
                 </div>
             )}
-            <div className="min-h-full w-full bg-zinc-100 rounded-md border border-zinc-200 px-5 py-2 \flex items-center justify-start flex scrollbar-x-thin">
 
-                <div className="text-sm font-thin border-r px-2  border-zinc-200 h-full flex items-center justify-center gap-3 w-180px]">
-                    <span className=' w-full flex-nowrap overflow-hidden line-clamp-1'>{FILE_NAME}</span>
+            <div className="min-h-full w-full bg-zinc-100 rounded-md border border-zinc-200 px-5 py-2 flex items-center justify-start flex scrollbar-x-thin">
+
+                {/* File Name */}
+                <div className="text-sm font-thin border-r px-2 border-zinc-200 h-full flex items-center justify-center gap-3 w-180px]">
+                    <span className='w-full flex-nowrap overflow-hidden line-clamp-1'>{FILE_NAME}</span>
                 </div>
 
-                {/* Undo/Redo Section */}
-                <div className="flex h-full w-fit items-center justify-center gap-4 border-r border-zinc-200 px-3">
-                    {undoRedoActions.map((item) => {
-                        const IconComponent = item.icon;
-                        const isDisabled = item.action === 'undo' ? !canUndo : !canRedo;
-                        return (
-                            <button
-                                key={item.action}
-                                className={`font-light cursor-pointer ${isDisabled ? 'opacity-50' : ''}`}
-                                onClick={() => handleUndoRedo(item.action)}
-                                disabled={isDisabled}
-                                title={item.label}
-                            >
-                                <IconComponent color='#8b8c89' size={22} />
-                            </button>
-                        );
-                    })}
-                </div>
+                {undoRedoSection}
 
                 {/* Style and Font Controls */}
                 <div className="flex items-center h-full justify-center gap-2 px-3 border-r border-zinc-200">
@@ -263,74 +330,14 @@ const ToolBar = () => {
                         />
                     </div>
 
-                    {/* Text Formatting Buttons */}
-                    <div className="flex items-center gap-1.5 px-2">
-                        {textFormatActions.map((formatAction) => {
-                            const IconComponent = formatAction.icon;
-                            const actionKey = RichTextAction[formatAction.key as keyof typeof RichTextAction];
-
-                            return (
-                                <Container
-                                    key={formatAction.action}
-                                    Checked={selectionMap[actionKey]}
-                                    handleClick={() => handleUpdate(formatAction.action as TextFormatType)}
-                                >
-                                    <button title={formatAction.label}>
-                                        <IconComponent color='#022B3A' size={12} />
-                                    </button>
-                                </Container>
-                            );
-                        })}
-
-                        {/* Text Color Control */}
-                        <div
-                            onClick={() => setisModalOpen(true)}
-                            className="flex flex-col items-center justify-center cursor-pointer leading-14 relative"
-                        >
-                            <p className='font-semibold text-sm'>A</p>
-                            <span style={{ backgroundColor: color }} className='h-1 w-4 rounded-md' />
-                        </div>
-                    </div>
+                    {formatButtonsSection}
                 </div>
 
-                {/* Text Alignment Controls */}
-                <div className="flex items-center h-full justify-center gap-2 px-5 border-r border-zinc-200">
-                    {alignmentOptions.map((alignOption) => {
-                        const IconComponent = alignOption.icon;
+                {alignmentSection}
 
-                        return (
-                            <Container
-                                key={alignOption.alignment}
-                                handleClick={() => handleAlignmentUpdate(alignOption.alignment as ElementFormatType)}
-                                Checked={currAlignment === alignOption.alignment}
-                            >
-                                <button title={alignOption.label}>
-                                    <IconComponent color='#022B3A' size={16} />
-                                </button>
-                            </Container>
-                        );
-                    })}
-                </div>
-
-                {/* Lists and Line Height Controls */}
+                {/* Lists and Line Height */}
                 <div className="flex items-center h-full justify-center gap-2 px-2 border-r border-zinc-200">
-                    {/* List Controls */}
-                    <div className="flex items-center gap-1.5">
-                        {listOptions.map((listOption) => {
-                            const IconComponent = listOption.icon;
-                            return (
-                                <Container
-                                    Checked={currentListType == listOption.type}
-                                    key={listOption.type}
-                                    handleClick={() => handleListCommand(listOption.command)}
-                                >
-                                    <button title={listOption.label}>
-                                        <IconComponent color='#022B3A' size={16} />
-                                    </button>
-                                </Container>
-                            );
-                        })}
-                    </div>
+                    {listSection}
                     <div className="flex items-center gap-2 px-2">
                         <span className="text-sm text-zinc-600 whitespace-nowrap">Line Height:</span>
                         <SelectInput
@@ -342,34 +349,24 @@ const ToolBar = () => {
                     </div>
                 </div>
 
+                {/* Margin Button */}
                 <div className="flex items-center h-full justify-center gap-2 px-2">
-                    <button onClick={()=>showModal(<MarginModal />)} className='flex items-center justify-center gap-1 cursor-pointer flex-col'>
+                    <button onClick={handleMarginModal} className='flex items-center justify-center gap-1 cursor-pointer flex-col'>
                         <RxMargin size={22} />
                     </button>
-                    {/* <button onClick={NewPage} className='flex items-center justify-center gap-1 cursor-pointer flex-col'>
-                        <ImPageBreak size={22} />
-                    </button> */}
                 </div>
-
 
                 <div className="flex items-center h-full justify-center gap-2 px-2">
-                    <button className='px-4 py-1.5  bg-lblue text-black rounded-lg font-thin text-sm cursor-pointer' onClick={() => {
-                        handleClick(editor,{margins})
-                    }}>Export</button>
+                    <button
+                        className='px-4 py-1.5 bg-lblue text-black rounded-lg font-thin text-sm cursor-pointer'
+                        onClick={handleExport}
+                    >
+                        Export
+                    </button>
                 </div>
-            </div> 
+            </div>
         </div>
     );
 };
 
 export default ToolBar;
-
-
-
-
-
-
-
-
-
-

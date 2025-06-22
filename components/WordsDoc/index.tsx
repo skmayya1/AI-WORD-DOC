@@ -15,7 +15,7 @@ const WordsViewer = () => {
 
     const initialConfig = {
         namespace: 'ReportViewer',
-        theme,  
+        theme,
         onError(error: Error) {
             throw error;
         },
@@ -33,8 +33,9 @@ const WordsViewer = () => {
     return (
         <div className="bg-[#fafafa] h-full w-[78.5%] rounded-lg border  relative overflow-hidden" >
             <LexicalComposer initialConfig={initialConfig}>
-                <EditorProvider>
-                    <ModalProvider>
+                <ModalProvider>
+
+                    <EditorProvider>
                         <ToolBar />
                         <div className="overflow-auto scrollbar-thin h-full max-h-[93%] w-full py-4">
                             <LexicalEditor />
@@ -42,9 +43,10 @@ const WordsViewer = () => {
 
                             </div>
                         </div>
-                    </ModalProvider>
 
-                </EditorProvider>
+                    </EditorProvider>
+                </ModalProvider>
+
             </LexicalComposer>
         </div>
     )
