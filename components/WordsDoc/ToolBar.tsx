@@ -172,9 +172,6 @@ const ToolBar = () => {
         setIsModalOpen(prev => !prev);
     }, []);
 
-    const handleExport = useCallback(() => {
-        handleClick(editor, { margins },"docx");
-    }, [editor, margins]);
 
     const handleMarginModal = useCallback(() => {
         showModal(<MarginModal />);
@@ -351,20 +348,13 @@ const ToolBar = () => {
                 </div>
 
                 {/* Margin Button */}
-                <div className="flex items-center h-full justify-center gap-2 px-2">
+                <div className="flex items-center h-full justify-center gap-2 px-4 ">
                     <button onClick={handleMarginModal} className='flex items-center justify-center gap-1 cursor-pointer flex-col'>
                         <RxMargin size={22} />
                     </button>
                 </div>
 
-                <div className="flex items-center h-full justify-center gap-2 px-2">
-                    <button
-                        className='px-4 py-1.5 bg-lblue text-black rounded-lg font-thin text-sm cursor-pointer'
-                        onClick={handleExport}
-                    >
-                        Export
-                    </button>
-                </div>
+
             </div>
         </div>
     );
