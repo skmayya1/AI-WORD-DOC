@@ -1,10 +1,19 @@
 import React from 'react'
 import { IoMdSend } from "react-icons/io";
 import { IoIosAdd } from "react-icons/io";
+import { useChat } from '@/contexts/ChatContext';
 // import { IoMdKey } from "react-icons/io";
 
-
 const Input = () => {
+    const { input, setInput, handleSendMessage } = useChat();
+
+    const handleKeyPress = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSendMessage();
+        }
+    };
+
     return (
         <div className='w-full h-[120px] rounded-lg bg-zinc-100 border-silver/30 border p-2 px-3 flex flex-col items-center justify-between gap-2 '>
             <div className="h-fit w-full flex items-center">
@@ -15,10 +24,19 @@ const Input = () => {
                 </div>
             </div>
             <div className="w-full h-full flex items-start justify-between gap-4">
-                <textarea placeholder='Write, Generate , Edit anything' className='h-full w-full text-sm tracking-wide border-0 outline-0 resize-none' />
-                <div className="h-full flex items-start justify-center ">
+                <textarea 
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={handleKeyPress}
+                    placeholder='Write, Generate, Edit anything' 
+                    className='h-full w-full text-sm tracking-wide border-0 outline-0 resize-none bg-transparent' 
+                />
+                <button 
+                    onClick={handleSendMessage}
+                    className="h-full flex items-start justify-center cursor-pointer hover:opacity-70 transition-opacity"
+                >
                     <IoMdSend color='#022B3A' size={20} />
-                </div>
+                </button>
             </div>
         </div>
     )
