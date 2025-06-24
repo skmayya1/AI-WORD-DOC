@@ -350,7 +350,7 @@ const ToolBar = () => {
                 {/* Margin Button */}
                 <div className="flex items-center h-full justify-center gap-2 px-4 ">
                     <button onClick={handleMarginModal} className='flex items-center justify-center gap-1 cursor-pointer flex-col'>
-                        <RxMargin size={22} />
+                        <RxMargin size={20} />
                     </button>
                 </div>
 

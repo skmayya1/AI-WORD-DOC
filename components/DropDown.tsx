@@ -33,7 +33,7 @@ const SelectInput: React.FC<SelectInputProps> = ({
 }) => {
   return (
     <Select value={value} onValueChange={onChange}>
-      <SelectTrigger className={className || "w-[160px]"}>
+      <SelectTrigger className={className || "w-[160px] select-none"}>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
