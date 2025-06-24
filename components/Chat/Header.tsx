@@ -14,6 +14,7 @@ import { useChat } from '@/contexts/ChatContext';
 const Header = () => {
     const { showModal } = useModal()
     const { createNewChat } = useChat()
+    
     return (
         <div className='h-fit w-full flex items-center justify-between '>
             <Tabs />

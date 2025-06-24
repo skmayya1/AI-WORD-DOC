@@ -1,4 +1,6 @@
+import { inMarkdown } from '@/ai-editor/Markdown';
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { useEditorContext } from './EditorContext';
 
 interface Message {
     role: 'agent' | 'human';
@@ -29,7 +31,11 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     const [chats, setChats] = useState<Chat[]>([]);
     const [activeChatId, setActiveChatId] = useState<string | null>(null);
 
+    const { editor } = useEditorContext()
+
     const activeChat = chats.find(chat => chat.id === activeChatId) || null;
+
+
 
     const createNewChat = () => {
         if (chats.length >= 6) return
@@ -78,15 +84,10 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             };
         }));
 
+        inMarkdown(editor)
         setInput('');
     };
 
-    // Create initial chat if none exists
-    React.useEffect(() => {
-        if (chats.length === 0) {
-            createNewChat();
-        }
-    }, []);
 
     return (
         <ChatContext.Provider value={{

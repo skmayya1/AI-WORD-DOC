@@ -46,7 +46,7 @@ const ReportViewer= () => {
             contentEditable={
               <ContentEditable
                 ref={editorRef}
-                className="editor-content select-text outline-0 w-[794px] min-h-[1123px] bg-transparent"
+                className="editor-content select-text outline-0 w-[794px] min-h-[1123px] bg-transparent "
                 style={{
                   paddingLeft: margins.left * 96,
                   paddingRight: margins.right * 96,
