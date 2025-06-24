@@ -84,7 +84,7 @@ const MarginModal: React.FC = () => {
                                     <div className="text-left flex-1">
                                         <div className="font-medium">{template.name}</div>
                                         <div className="text-xs opacity-70">
-                                            {template.values.top}" · {template.values.bottom}" · {template.values.left}" · {template.values.right}"
+                                            {template.values.top}&quot; · {template.values.bottom}&quot; · {template.values.left}&quot; · {template.values.right}&quot;
                                         </div>
                                     </div>
                                 </button>
