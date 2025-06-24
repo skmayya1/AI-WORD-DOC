@@ -1,7 +1,6 @@
 import React, { useCallback } from 'react'
 import { useEditorContext } from '@/contexts/EditorContext';
 import { handleClick } from '@/lib/utils';
-import { HiDownload } from "react-icons/hi";
 import { GoQuestion } from "react-icons/go";
 
 
@@ -22,7 +21,7 @@ const Menu = () => {
             
             <div className='flex items-center gap-3'>
                 <span className='text-xs text-zinc-400 font-medium'>
-                    {exportCredits} credit{exportCredits !== 1 ? 's' : ''}
+                    {/* {exportCredits} credit{exportCredits !== 1 ? 's' : ''} */}
                 </span>
                 <button
                     className='text-zinc-900 tracking-wide text-sm flex cursor-pointer bg-lblue rounded-lg px-5 py-1.5'

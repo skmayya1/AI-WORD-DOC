@@ -32,7 +32,6 @@ import {
 import { $createCodeNode } from '@lexical/code';
 import { $patchStyleText, $setBlocksType } from '@lexical/selection';
 import { useEditorContext } from '@/contexts/EditorContext';
-import { handleClick } from '@/lib/utils';
 import { ColorResult, TwitterPicker } from 'react-color';
 import { RxMargin } from "react-icons/rx";
 import { useModal } from '@/contexts/ModelContext';
