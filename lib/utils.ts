@@ -1,10 +1,8 @@
-// Assuming this is in your utils/helpers.ts or similar file
 import { clsx, type ClassValue } from "clsx"
 import { $createParagraphNode, $getSelection, LexicalEditor } from "lexical";
 import { $setBlocksType } from '@lexical/selection';
 import prettier from "prettier/standalone";
 import parserHtml from "prettier/parser-html";
-// No longer need HtmlDocx on the client for DOCX generation
 
 import { twMerge } from "tailwind-merge"
 
@@ -49,14 +47,8 @@ export const handleClick = async (editor: LexicalEditor, config: ConfigType, for
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ htmlContent: compatibleHtml, config }),
+          body: JSON.stringify({ compatibleHtml }),
         });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Failed to convert to DOCX');
-        }
-
         const blob = await response.blob(); // Get the response as a Blob
         const url = URL.createObjectURL(blob);
 
