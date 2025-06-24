@@ -12,7 +12,7 @@ const Menu = () => {
     }, [editor, margins]);
 
     // You can adjust this value based on your credit system
-    const exportCredits = 1;
+    // const exportCredits = 1;
 
     return (
         <div className='w-full h-12 rounded-lg bg-white p-2 flex px-5 items-center justify-between'>

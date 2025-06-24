@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Eye, EyeOff, Key, X } from 'lucide-react'
+import { Eye, EyeOff} from 'lucide-react'
 import { useModal } from '@/contexts/ModelContext'
 
 const ConfigModal = () => {

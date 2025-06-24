@@ -52,7 +52,6 @@ const ToolBar = () => {
         currentLineHeight,
         currentListType,
         color,
-        margins,
         setCurrentStyle,
         setCurrentFontFamily,
         setCurrentFontSize,
