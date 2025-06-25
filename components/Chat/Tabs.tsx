@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import { IoCloseSharp, IoChevronForward, IoChevronBack } from "react-icons/io5";
 
 const Tabs: React.FC = () => {
-  const { chats, deleteChat } = useChat()
+  const { chats, deleteChat , switchChat } = useChat()
   const [showOverflow, setShowOverflow] = useState<boolean>(false)
   const [canScrollLeft, setCanScrollLeft] = useState<boolean>(false)
   const [canScrollRight, setCanScrollRight] = useState<boolean>(false)
@@ -43,7 +43,7 @@ const Tabs: React.FC = () => {
   }
 
   return (
-    <div ref={containerRef} className='flex items-center justify-start w-[70%] h-fit relative rounded-md overflow-hidden'>
+    <div ref={containerRef} className='flex items-center justify-start w-[85%] h-fit relative rounded-md overflow-hidden'>
       {/* Left scroll button */}
       {showOverflow && canScrollLeft && (
         <button 
@@ -63,15 +63,15 @@ const Tabs: React.FC = () => {
       >
         {chats.map((chat, idx) => (
           <span 
-            key={chat.id}
-            className='relative px-1.5 py-0.5 overflow-hidden w-fit min-w-fit text-[12px] text-eerie-black/80 border-silver/30 border rounded-md group select-none transition-all duration-300 ease-in-out hover:pr-5 mr-1 flex-shrink-0'
+            key={chat.id + idx}
+            className='relative px-1.5 py-0.5 overflow-hidden w-fit min-w-fit text-[12px] text-eerie-black/80 border-silver/30 border rounded-md group select-none transition-all duration-300 ease-in-out  mr-1 flex-shrink-0'
           >
-            <span className='relative z-10 transition-all duration-300 ease-in-out group-hover:mr-1 whitespace-nowrap'>
+            <span onClick={()=> switchChat(chat.id)} className='relative z-10 transition-all duration-300 ease-in-out  whitespace-nowrap px-1.5'>
               {chat.tabName}
             </span>
             <button 
               onClick={() => deleteChat(chat.id)} 
-              className='absolute z-20 right-0 top-0 px-1 h-full opacity-0 group-hover:opacity-100 transition-all duration-300 ease-in-out transform translate-x-full group-hover:translate-x-0'
+              className='absolute z-20 right-0 top-0 px-1  h-full opacity-0 group-hover:opacity-100 transition-all duration-300 ease-in-out '
             >
               <IoCloseSharp size={15} color='gray' />
             </button>

@@ -4,9 +4,10 @@ import { useEditorContext } from './EditorContext';
 import axios from 'axios';
 import { API_URL } from '@/lib/constants';
 
-interface Message {
+export interface Message {
     role: 'agent' | 'human';
     content: string;
+    // isGenerating:boolean
 }
 
 interface Chat {
@@ -64,34 +65,36 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     const handleSendMessage = () => {
         if (!input.trim()) return;
 
-
-        if (!activeChat) createNewChat()
-
-
-
         const newMessage: Message = { role: 'human', content: input.trim() };
         const agentMessage: Message = { role: 'agent', content: "This is a sample response from the agent" };
 
-        setChats(prev => prev.map(chat => {
-            if (chat.id !== activeChatId) return chat;
-
-            const updatedMessages = [...chat.messages, newMessage, agentMessage];
-            return {
-                ...chat,
-                messages: updatedMessages,
-                // Update tab name only if this is the first message
-                tabName: chat.messages.length === 0
-                    ? agentMessage.content.split(' ').slice(0, 2).join(' ')
-                    : chat.tabName
+        // If no active chat, create one and add the message to it
+        if (!activeChat) {
+            if (chats.length >= 6) return;
+            const newChat: Chat = {
+                id: Date.now().toString(),
+                messages: [newMessage, agentMessage],
+                tabName: agentMessage.content.split(' ').slice(0, 2).join(' ')
             };
-        }));
-
-
+            setChats(prev => [...prev, newChat]);
+            setActiveChatId(newChat.id);
+        } else {
+            setChats(prev => prev.map(chat => {
+                if (chat.id !== activeChatId) return chat;
+                const updatedMessages = [...chat.messages, newMessage, agentMessage];
+                return {
+                    ...chat,
+                    messages: updatedMessages,
+                    tabName: chat.messages.length === 0
+                        ? agentMessage.content.split(' ').slice(0, 2).join(' ')
+                        : chat.tabName
+                };
+            }));
+        }
         axios.post(API_URL + '/api/agent', {
             context: inMarkdown(editor)
         },{
             withCredentials: true
-
         })
 
         inMarkdown(editor)

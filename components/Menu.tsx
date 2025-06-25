@@ -1,7 +1,6 @@
 import React, { useCallback } from 'react'
 import { useEditorContext } from '@/contexts/EditorContext';
 import { handleClick } from '@/lib/utils';
-import { GoQuestion } from "react-icons/go";
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import ConfigModal from './Chat/ConfigModal';
 import { useModal } from '@/contexts/ModelContext';

@@ -3,41 +3,50 @@ import Input from './Input'
 // import Tabs from './Tabs'
 import Header from './Header'
 import { useChat } from '@/contexts/ChatContext'
-import { transform } from 'next/dist/build/swc/generated-native'
+import ChatDrop from './ChatDrop'
 
 const Chat: React.FC = () => {
-  const { chats } = useChat()
+  const { chats, activeChat } = useChat()
   const newHere = chats.length === 0;
-  
+  console.log(activeChat);
+
   return (
-    <div className='w-full h-full rounded-lg bg-white py-2 px-2 flex flex-col relative overflow-hidden'>
-      {/* Header container with smooth slide-down animation */}
-      <div 
-        className={`w-full transition-all duration-400 ease-out transform overflow-hidden ${
-          !newHere 
-            ? 'translate-y-0 ' 
-            : '-translate-y-10'
-        }`}
-      >
-        <Header />
+    <div className='w-full h-full rounded-lg bg-white py-2 px-2 flex flex-col relative'>
+      {!newHere && (
+        <div className="w-full flex-shrink-0 transition-all duration-400 ease-out">
+          <Header />
+        </div>
+      )}
+
+      <div className={`w-full flex-1 h-fit overflow-y-auto overflow-x-hidden scrollbar-thin  ${newHere ? 'flex items-center justify-center absolute bottom-100' : ''
+        }`}>
+        {activeChat && activeChat.messages.length > 0 ? (
+          <div className="w-full space-y-4 px-2 py-5">
+            {activeChat.messages.map((msg, idx) => (
+              <ChatDrop
+                key={`${activeChat.id}-${idx}`}
+                message={msg.content}
+                type={msg.role}
+                isGenerating={idx === activeChat.messages.length - 2}
+              />
+            ))}
+          </div>
+        ) : newHere ? (
+          <div className="text-center text-gray-500 select-none">
+          <p>Start writing your document !</p>
+          <p className="text-sm text-gray-400">Click anywhere or use AI to begin drafting</p>
+        </div>
+        
+        ) : null}
       </div>
-      
-      {/* Flexible spacer that adjusts based on state */}
-      <div className={`w-full transition-all duration-600 ease-out ${newHere ? 'flex-1' : 'flex-grow'}`}>
-        {/* This area can contain chat messages when they exist */}
-      </div>
-      
-      {/* Input container with smooth position transition */}
-      <div 
-        className={`w-full transition-all duration-300 ease-out ${
-          newHere ? 'transform -translate-y-185'
-            : 'transform translate-y-0'
-        }`}
-      >
-        <Input />
+
+      <div className={`w-full flex-shrink-0 transition-all duration-300 ease-out`}>
+        <div className={newHere ? 'w-full max-w-2xl' : 'w-full'}>
+          <Input />
+        </div>
       </div>
     </div>
   )
 }
 
-export default Chat 
+export default Chat

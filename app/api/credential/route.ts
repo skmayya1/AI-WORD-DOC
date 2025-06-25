@@ -39,6 +39,8 @@ export async function GET(req: NextRequest) {
     const decoded = jwt.verify(token, JWT_SECRET);
     return NextResponse.json({ token, decoded });
   } catch (err) {
+    console.log(err);
+    
     return NextResponse.json({ error: "Invalid or expired token" }, { status: 403 });
   }
 }
