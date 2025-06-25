@@ -1,4 +1,4 @@
-import { inMarkdown } from '@/ai-editor/Markdown';
+import { inMarkdown, updateEditorFromMarkdown } from '@/ai-editor/Markdown';
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { useEditorContext } from './EditorContext';
 import axios from 'axios';
@@ -7,7 +7,7 @@ import { API_URL } from '@/lib/constants';
 export interface Message {
     role: 'agent' | 'human';
     content: string;
-    // isGenerating:boolean
+    isGenerating: boolean
 }
 
 interface Chat {
@@ -25,6 +25,7 @@ interface ChatContextType {
     createNewChat: () => void;
     switchChat: (id: string) => void;
     deleteChat: (id: string) => void;
+    isGenerating: boolean;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -33,15 +34,14 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     const [input, setInput] = useState('');
     const [chats, setChats] = useState<Chat[]>([]);
     const [activeChatId, setActiveChatId] = useState<string | null>(null);
+    const [isGenerating, setIsGenerating] = useState(false);
 
-    const { editor } = useEditorContext()
+    const { editor } = useEditorContext();
 
     const activeChat = chats.find(chat => chat.id === activeChatId) || null;
 
-
-
     const createNewChat = () => {
-        if (chats.length >= 6) return
+        if (chats.length >= 6) return;
         const newChat: Chat = {
             id: Date.now().toString(),
             messages: [],
@@ -58,49 +58,108 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     const deleteChat = (id: string) => {
         setChats(prev => prev.filter(chat => chat.id !== id));
         if (activeChatId === id) {
-            setActiveChatId(chats[0]?.id || null);
+            const remainingChats = chats.filter(chat => chat.id !== id);
+            setActiveChatId(remainingChats[0]?.id || null);
         }
     };
 
-    const handleSendMessage = () => {
-        if (!input.trim()) return;
+    const handleSendMessage = async () => {
+        if (!input.trim() || isGenerating) return;
 
-        const newMessage: Message = { role: 'human', content: input.trim() };
-        const agentMessage: Message = { role: 'agent', content: "This is a sample response from the agent" };
+        const userMessage: Message = { role: 'human', content: input.trim(), isGenerating: true };
+        let currentChat: Chat;
 
-        // If no active chat, create one and add the message to it
+        // Create new chat or update existing one with user message
         if (!activeChat) {
             if (chats.length >= 6) return;
-            const newChat: Chat = {
+            currentChat = {
                 id: Date.now().toString(),
-                messages: [newMessage, agentMessage],
-                tabName: agentMessage.content.split(' ').slice(0, 2).join(' ')
+                messages: [userMessage],
+                tabName: userMessage.content.split(' ').slice(0, 3).join(' ') || 'New Chat'
             };
-            setChats(prev => [...prev, newChat]);
-            setActiveChatId(newChat.id);
+            setChats(prev => [...prev, currentChat]);
+            setActiveChatId(currentChat.id);
         } else {
+            currentChat = {
+                ...activeChat,
+                messages: [...activeChat.messages, userMessage]
+            };
+            setChats(prev => prev.map(chat =>
+                chat.id === activeChatId ? currentChat : chat
+            ));
+        }
+
+        // Clear input and set generating state
+        setInput('');
+        setIsGenerating(true);
+
+        try {
+            // Get current document content
+            const currentContext = inMarkdown(editor);
+
+
+            const response = await axios.post(API_URL + '/api/agent', {
+                context: currentContext,
+                chat: currentChat
+            }, {
+                withCredentials: true
+            });
+
+            const { response: aiResponse, updatedContent } = response.data;
+
+            const agentMessage: Message = {
+                role: 'agent',
+                content: aiResponse || "I've processed your request.",
+                isGenerating: false
+            };
+
+            // Update the chat with agent response
             setChats(prev => prev.map(chat => {
-                if (chat.id !== activeChatId) return chat;
-                const updatedMessages = [...chat.messages, newMessage, agentMessage];
+                if (chat.id !== currentChat.id) return chat;
                 return {
                     ...chat,
-                    messages: updatedMessages,
+                    messages: [...chat.messages, agentMessage],
                     tabName: chat.messages.length === 0
-                        ? agentMessage.content.split(' ').slice(0, 2).join(' ')
+                        ? (aiResponse?.split(' ').slice(0, 3).join(' ') || 'New Chat')
                         : chat.tabName
                 };
             }));
+
+            if (updatedContent && updateEditorFromMarkdown) {
+                updateEditorFromMarkdown(editor, updatedContent);
+            }
+
+        } catch (error) {
+            console.error('Error sending message:', error);
+
+            // Add error message to chat
+            const errorMessage: Message = {
+                role: 'agent',
+                content: "Sorry, there was an error processing your request. Please check your API key and try again.",
+                isGenerating: false
+            };
+
+            setChats(prev => prev.map(chat => {
+                if (chat.id !== currentChat.id) return chat;
+                return {
+                    ...chat,
+                    messages: [...chat.messages, errorMessage]
+                };
+            }));
+        } finally {
+            setIsGenerating(false);
+            // Ensure isGenerating is false for all messages in the active chat immutably
+            if (currentChat) {
+                setChats(prev => prev.map(chat => {
+                    if (chat.id !== currentChat.id) return chat;
+                    return {
+                        ...chat,
+                        messages: chat.messages.map(m => ({ ...m, isGenerating: false }))
+                    };
+                }));
+            }
         }
-        axios.post(API_URL + '/api/agent', {
-            context: inMarkdown(editor)
-        },{
-            withCredentials: true
-        })
-
-        inMarkdown(editor)
-        setInput('');
     };
-
 
     return (
         <ChatContext.Provider value={{
@@ -111,7 +170,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             handleSendMessage,
             createNewChat,
             switchChat,
-            deleteChat
+            deleteChat,
+            isGenerating
         }}>
             {children}
         </ChatContext.Provider>

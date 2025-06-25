@@ -14,8 +14,10 @@ const Header = () => {
     const { createNewChat } = useChat()
     
     return (
-        <div className='h-fit w-full flex items-center justify-between '>
-            <Tabs />
+        <div className='h-fit w-full flex items-center justify-between'>
+            <div className="w-full overflow-x-auto whitespace-nowrap flex items-center">
+                <Tabs />
+            </div>
             <div className="flex gap-2 items-center px-2">
                 <Tooltip >
                     <TooltipTrigger>
