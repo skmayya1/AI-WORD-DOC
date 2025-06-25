@@ -38,7 +38,7 @@ export const stylesOptions = [
 { label: 'Code Block', value: 'code' }
 ];
 
-export const API_URL = process.env.API_URL || "http://localhost:5000"
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
 
 // Font family options
 export const fontFamilyOptions = [

@@ -69,7 +69,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         const userMessage: Message = { role: 'human', content: input.trim(), isGenerating: true };
         let currentChat: Chat;
 
-        // Create new chat or update existing one with user message
         if (!activeChat) {
             if (chats.length >= 6) return;
             currentChat = {
@@ -89,7 +88,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             ));
         }
 
-        // Clear input and set generating state
         setInput('');
         setIsGenerating(true);
 

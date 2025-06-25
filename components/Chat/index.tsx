@@ -17,7 +17,6 @@ const Chat: React.FC = () => {
   }, [activeChat?.messages?.length])
 
   return (
-    // Make the parent a flex container with column direction and full height
     <div className='w-full h-full max-h-[94%] rounded-lg bg-white py-2 px-2 flex flex-col relative'>
       {!newHere && (
         <div className="w-full flex-shrink-0 transition-all duration-400 ease-out">
