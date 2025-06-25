@@ -1,6 +1,8 @@
 import { inMarkdown } from '@/ai-editor/Markdown';
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { useEditorContext } from './EditorContext';
+import axios from 'axios';
+import { API_URL } from '@/lib/constants';
 
 interface Message {
     role: 'agent' | 'human';
@@ -83,6 +85,14 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
                     : chat.tabName
             };
         }));
+
+
+        axios.post(API_URL + '/api/agent', {
+            context: inMarkdown(editor)
+        },{
+            withCredentials: true
+
+        })
 
         inMarkdown(editor)
         setInput('');

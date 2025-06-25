@@ -18,9 +18,9 @@ export async function POST(req: NextRequest) {
     value: JWT_CREDENTIAL,
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    sameSite: "none",
     path: "/",
-    maxAge: 90 * 60 * 60, // 90 hours in seconds
+    maxAge: 90 * 60 * 60, 
   });
 
   return response;
