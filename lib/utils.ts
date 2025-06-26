@@ -22,7 +22,6 @@ function formatHtmlForDocx(html: string): string {
     .replace(/>\s+</g, '><')
     .replace(/(<\/(?:div|p|h[1-6]|ul|ol|li|table|tr|td|th|blockquote|pre)>)/gi, '$1\n')
     .replace(/(<(?:div|p|h[1-6]|ul|ol|li|table|tr|td|th|blockquote|pre)[^>]*>)/gi, '\n$1')
-    // Clean up multiple line breaks
     .replace(/\n\s*\n/g, '\n')
     .trim();
 

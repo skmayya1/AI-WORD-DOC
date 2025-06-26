@@ -132,7 +132,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
                 };
             }));            
             
-            if (typeof updatedContent === "string" && updatedContent.trim() !== "" && updatedContent !== null) {                
+            if (typeof updatedContent === "string" && updatedContent.trim() !== "" && updatedContent !== null && updatedContent !=='null') {                
                 updateEditorFromMarkdown(editor, updatedContent);
             }
 
