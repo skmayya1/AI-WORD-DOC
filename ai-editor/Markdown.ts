@@ -17,12 +17,10 @@ export function inMarkdown(editor: LexicalEditor): string {
 
 // Update editor content from markdown string
 export function updateEditorFromMarkdown(editor: LexicalEditor, markdownContent: string): void {
+  if (!markdownContent || markdownContent.trim() === "") return;
   editor.update(() => {
-    // Clear existing content
     const root = $getRoot();
     root.clear();
-    
-    // Convert markdown to lexical nodes and insert
     $convertFromMarkdownString(markdownContent, TRANSFORMERS);
   });
 }

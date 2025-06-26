@@ -40,6 +40,8 @@ export const stylesOptions = [
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
 
+
+
 // Font family options
 export const fontFamilyOptions = [
   { label: 'Inter', value: 'Inter, sans-serif' },

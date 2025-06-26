@@ -92,7 +92,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         setIsGenerating(true);
 
         try {
-            // Get current document content
             const currentContext = inMarkdown(editor);
 
             const apiUrl = process.env.NODE_ENV === 'development'
@@ -122,7 +121,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
                 isGenerating: false
             };
 
-            // Update the chat with agent response
             setChats(prev => prev.map(chat => {
                 if (chat.id !== currentChat.id) return chat;
                 return {
@@ -132,12 +130,13 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
                         ? (aiResponse?.split(' ').slice(0, 3).join(' ') || 'New Chat')
                         : chat.tabName
                 };
-            }));
-
-            if (updatedContent && updateEditorFromMarkdown) {
+            }));            
+            
+            if (typeof updatedContent === "string" && updatedContent.trim() !== "" && updatedContent !== null) {                
                 updateEditorFromMarkdown(editor, updatedContent);
             }
 
+            
         } catch (error) {
             console.error('Error sending message:', error);
 
