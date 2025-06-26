@@ -95,7 +95,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             // Get current document content
             const currentContext = inMarkdown(editor);
 
-            const response = await fetch(API_URL + '/api/agent', {
+            const response = await fetch('/api/agent', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json'

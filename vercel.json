@@ -1,0 +1,9 @@
+{
+    "rewrites": [
+      {
+        "source": "/api/agent",
+        "destination": "https://ai-docs-server.onrender.com/api/agent"
+      }
+    ]
+  }
+  
