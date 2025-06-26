@@ -95,15 +95,22 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             // Get current document content
             const currentContext = inMarkdown(editor);
 
+            const response = await fetch(API_URL + '/api/agent', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                credentials: 'include', // ✅ critical: send cookies
+                body: JSON.stringify({
+                  context: currentContext,
+                  chat: currentChat
+                })
+              });
+              
+              const data = await response.json();
+              
 
-            const response = await axios.post(API_URL + '/api/agent', {
-                context: currentContext,
-                chat: currentChat
-            }, {
-                withCredentials: true
-            });
-
-            const { response: aiResponse, updatedContent } = response.data;
+            const { response: aiResponse, updatedContent } = data;
 
             const agentMessage: Message = {
                 role: 'agent',
