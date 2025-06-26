@@ -4,7 +4,7 @@ import { $setBlocksType } from '@lexical/selection';
 import { twMerge } from "tailwind-merge"
 import { $generateHtmlFromNodes } from '@lexical/html';
 import { API_URL } from "./constants";
-import type { BuiltInParserName, Options as PrettierOptions } from "prettier";
+import type {  Options as PrettierOptions } from "prettier";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
