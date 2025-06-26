@@ -4,6 +4,7 @@ import { $setBlocksType } from '@lexical/selection';
 import { twMerge } from "tailwind-merge"
 import { $generateHtmlFromNodes } from '@lexical/html';
 import { API_URL } from "./constants";
+import type { BuiltInParserName, Options as PrettierOptions } from "prettier";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -17,7 +18,7 @@ export const formatParagraph = (editor: LexicalEditor) => {
 };
 
 function formatHtmlForDocx(html: string): string {
-  let formatted = html
+  const formatted = html
     .replace(/>\s+</g, '><')
     .replace(/(<\/(?:div|p|h[1-6]|ul|ol|li|table|tr|td|th|blockquote|pre)>)/gi, '$1\n')
     .replace(/(<(?:div|p|h[1-6]|ul|ol|li|table|tr|td|th|blockquote|pre)[^>]*>)/gi, '\n$1')
@@ -56,11 +57,14 @@ function formatHtmlForDocx(html: string): string {
   return formattedLines.filter(line => line.trim()).join('\n');
 }
 
-let prettierCache: { format?: any; parser?: any } = {};
+type PrettierFormat = (source: string, options: PrettierOptions) => string | Promise<string>;
+type PrettierParser = object;
 
-async function loadPrettierSafely() {
+const prettierCache: { format?: PrettierFormat; parser?: PrettierParser } = {};
+
+async function loadPrettierSafely(): Promise<{ format: PrettierFormat | null; parser: PrettierParser | null }> {
   if (prettierCache.format && prettierCache.parser) {
-    return prettierCache;
+    return { format: prettierCache.format, parser: prettierCache.parser ?? null };
   }
 
   try {
@@ -89,10 +93,10 @@ async function loadPrettierSafely() {
       }
     }
 
-    prettierCache.format = prettier.format;
+    prettierCache.format = prettier.format as PrettierFormat;
     prettierCache.parser = parserHtml.default || parserHtml;
     
-    return prettierCache;
+    return { format: prettierCache.format, parser: prettierCache.parser ?? null };
   } catch (error) {
     console.warn('Failed to load Prettier from CDN, using fallback formatter:', error);
     return { format: null, parser: null };
