@@ -95,20 +95,24 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             // Get current document content
             const currentContext = inMarkdown(editor);
 
-            const response = await fetch('/api/agent', {
+            const apiUrl = process.env.NODE_ENV === 'development'
+                ? 'http://localhost:5000/api/agent'  // Development 
+                : '/api/agent';  // Production
+
+            const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: {
-                  'Content-Type': 'application/json'
+                    'Content-Type': 'application/json'
                 },
                 credentials: 'include', // ✅ critical: send cookies
                 body: JSON.stringify({
-                  context: currentContext,
-                  chat: currentChat
+                    context: currentContext,
+                    chat: currentChat
                 })
-              });
-              
-              const data = await response.json();
-              
+            });
+
+            const data = await response.json();
+
 
             const { response: aiResponse, updatedContent } = data;
 
