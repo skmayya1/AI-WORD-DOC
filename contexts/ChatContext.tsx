@@ -115,9 +115,12 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
             const { response: aiResponse, updatedContent } = data;
 
+            const updateContentValid = typeof updatedContent === "string" && updatedContent.trim() !== "" && updatedContent !== null && updatedContent !=='null';
+
+
             const agentMessage: Message = {
                 role: 'agent',
-                content: aiResponse || "I've processed your request.",
+                content: aiResponse,
                 isGenerating: false
             };
 
@@ -132,7 +135,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
                 };
             }));            
             
-            if (typeof updatedContent === "string" && updatedContent.trim() !== "" && updatedContent !== null && updatedContent !=='null') {                
+            if (updateContentValid) {                
                 updateEditorFromMarkdown(editor, updatedContent);
             }
 

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 
+const inProduction = process.env.NODE_ENV === "production"
+
 export async function POST(req: NextRequest) {
   const { apiKey } = await req.json();
   const JWT_SECRET = process.env.JWT_SECRET || "secretkey";
@@ -12,17 +14,15 @@ export async function POST(req: NextRequest) {
   );
 
   const response = NextResponse.json({ message: "Token generated" });
-
   response.cookies.set({
     name: "credential",
     value: JWT_CREDENTIAL,
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "none",
+    secure: inProduction,
+    sameSite: inProduction ? "none" : "lax",
     path: "/",
     maxAge: 90 * 60 * 60, 
   });
-
   return response;
 }
 
